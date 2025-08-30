@@ -63,7 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function carregarProdutos() {
   try {
-    const resposta = await fetch("http://localhost:5000/api/produtos");
+    const resposta = await fetch("/api/produtos");
+
     if (!resposta.ok) throw new Error("Erro ao carregar os produtos.");
 
     const produtos = await resposta.json();
