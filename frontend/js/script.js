@@ -3,7 +3,7 @@ let carrinho = [];
 // Detecta se está em localhost ou produção
 const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"   // quando rodar local
-  : "https://yane-moda-bags.onrender.com"; // backend no Render
+  : "https://yane-moda-bags.onrender.com/api"; // backend no Render (ajustado com /api)
 
 // garante que o HTML do carrinho existe (para evitar erros de null)
 function ensureCartDOM() {
@@ -19,14 +19,11 @@ function ensureCartDOM() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Ligações de UI do carrinho
   const { modal, lista, total, limparBtn, finalizarBtn, openCart, closeCart } = ensureCartDOM();
 
-  // Evita erros se o HTML do carrinho não foi inserido
   if (!modal || !lista || !total) {
     console.warn("Estrutura do carrinho não encontrada. Verifique o HTML da modal do carrinho.");
   } else {
-    // Abrir / fechar modal
     if (openCart) {
       openCart.addEventListener("click", (e) => {
         e.preventDefault();
@@ -47,11 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Botões limpar / finalizar
     if (limparBtn) limparBtn.addEventListener("click", limparCarrinho);
     if (finalizarBtn) finalizarBtn.addEventListener("click", finalizarCompra);
 
-    // Delegação para +/− dentro da lista
     lista.addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
@@ -68,10 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function carregarProdutos() {
   try {
-    const response = await fetch("https://yane-moda-bags.onrender.com/api/produtos");
-    if (!resposta.ok) throw new Error("Erro ao carregar os produtos.");
+    const response = await fetch(`${API_BASE_URL}/produtos`);
+    if (!response.ok) throw new Error("Erro ao carregar os produtos.");
 
-    const produtos = await resposta.json();
+    const produtos = await response.json();
     const lista = document.getElementById("lista-produtos");
     if (!lista) {
       console.error("Elemento 'lista-produtos' não encontrado.");
@@ -135,7 +130,7 @@ function limparCarrinho() {
 
 function atualizarCarrinho() {
   const { lista, total } = ensureCartDOM();
-  if (!lista || !total) return; // evita erro se HTML não existir
+  if (!lista || !total) return;
 
   lista.innerHTML = "";
   let soma = 0;
@@ -175,7 +170,6 @@ function finalizarCompra() {
     alert("Seu carrinho está vazio.");
     return;
   }
-  //  integrar com checkout, WhatsApp, etc.
   const resumo = carrinho.map(i => `${i.nome} x${i.quantidade} = R$ ${(i.preco * i.quantidade).toFixed(2)}`).join("\n");
   alert("Resumo do pedido:\n\n" + resumo);
 }
