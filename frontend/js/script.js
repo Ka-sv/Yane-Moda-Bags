@@ -68,8 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function carregarProdutos() {
   try {
-    const resposta = await fetch(`${API_BASE_URL}/produtos`);
-
+    const response = await fetch("https://yane-moda-bags.onrender.com/api/produtos");
     if (!resposta.ok) throw new Error("Erro ao carregar os produtos.");
 
     const produtos = await resposta.json();
