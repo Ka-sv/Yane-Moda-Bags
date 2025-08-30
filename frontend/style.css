@@ -1,15 +1,15 @@
-/* Estilo geral */
+
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     margin: 0;
     padding: 0;
-    background: #121212; /* fundo preto grafite */
-    color: #e0e0e0; /* texto claro */
+    background: #121212; 
+    color: #e0e0e0; 
   }
   
   header {
-    background: #0d7377; /* turquesa escuro */
-    color: #14ffec;      /* verde neon */
+    background: #0d7377; 
+    color: #14ffec;      
     padding: 20px;
     text-align: center;
     font-size: 1.6rem;
@@ -17,9 +17,8 @@ body {
     letter-spacing: 1px;
   }
   
-  /* Section de produtos */
   #produtos {
-    background: #1e1e1e; /* cinza escuro */
+    background: #1e1e1e; 
     padding: 40px 20px;
     border-radius: 12px;
     max-width: 1200px;
@@ -30,11 +29,11 @@ body {
   #produtos h2 {
     text-align: center;
     font-size: 2rem;
-    color: #14ffec; /* verde neon */
+    color: #14ffec; 
     margin-bottom: 30px;
   }
   
-  /* Lista de produtos */
+
   #lista-produtos {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -102,41 +101,137 @@ body {
     transform: scale(1.05);
   }
   
-  /* Estilos para a modal */
+ /* ===== Carrinho (modal) ===== */
 .modal {
-  display: none; 
-  position: fixed; 
-  z-index: 1; 
-  left: 0;
-  top: 0;
-  width: 100%; 
-  height: 100%; 
-  background-color: rgba(0,0,0,0.4); 
-  overflow: auto; 
+  display: none; /* será mostrado com .show */
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background-color: rgba(0,0,0,0.6);
+  overflow: auto;
 }
 
+.modal.show { display: block; }
+
 .modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 400px;
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #0d7377;
+  border-radius: 12px;
+  width: min(600px, 92%);
+  margin: 6rem auto;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
 }
 
 .close {
-  color: #aaa;
-  float: right;
+  background: transparent;
+  border: none;
+  color: #14ffec;
   font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
+  line-height: 1;
   cursor: pointer;
 }
+
+.cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+#lista-carrinho {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #333;
+}
+
+.cart-item .item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart-item .item-price {
+  font-weight: 600;
+  color: #14ffec;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-controls button {
+  background: #0d7377;
+  color: #14ffec;
+  border: 1px solid #0d7377;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.qty-controls button:hover {
+  background: #14ffec;
+  color: #0d7377;
+}
+
+.cart-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.cart-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: #14ffec;
+  color: #0d7377;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.92);
+}
+
+.btn-secondary {
+  background: #444;
+  color: #e0e0e0;
+  border: 1px solid #666;
+}
+
+.btn-secondary:hover {
+  background: #555;
+}
+
+/* Se NÃO quiser o ícone fixo no canto, remova ou sobrescreva isto: */
+#cart-icon { position: static; bottom: auto; right: auto; width: 40px; height: 40px; }
 
 #cart-icon {
   position: fixed; 
@@ -228,8 +323,8 @@ body {
   
 
   .footer {
-    background-color: #0d7377; /* mesma cor do header */
-    color: #ffffff;
+    background-color: #add8e6; /* mesma cor do header */
+    color: #000000;
     padding: 20px 10px;
     text-align: center;
   }
@@ -256,7 +351,7 @@ body {
   .footer-social a img {
     width: 30px;
     height: 30px;
-    filter: brightness(0) invert(1); /* deixa ícone branco */
+    
     transition: transform 0.3s;
   }
   
@@ -268,7 +363,6 @@ body {
   .footer-copy {
     font-size: 0.8rem;
     margin-top: 15px;
-    color: #eeeeee;
   }
   
   /* Responsivo */
@@ -309,7 +403,7 @@ body {
 
 .nav-menu ul li a {
   text-decoration: none;
-  color: #fff;          /* texto branco para contraste */
+  color: #000000;
   font-weight: 600;
   transition: color 0.3s;
 }
@@ -338,7 +432,7 @@ body {
 
 .header-icons a {
   font-size: 20px;
-  color: #fff;        /* ícones brancos */
+  /* color: #fff;         */
   transition: color 0.3s;
 }
 

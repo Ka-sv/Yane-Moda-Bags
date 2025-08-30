@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> Yane Moda & Bags  </title>
+  <title>Yane Moda & Bags</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  
   <header class="header">
     <div class="logo">
+      
       <img src="/frontend/img/Logo Yane Moda & Bags.png" alt="Yane Moda & Bags">
     </div>
 
@@ -20,11 +20,12 @@
       </ul>
     </nav>
 
+    
     <div class="header-icons">
       <input type="text" placeholder="Buscar...">
       <a href="#"><i class="fas fa-user"></i></a>
-      <!-- Alterado para imagem -->
-      <a href="#" id="open-cart">
+      <a href="#" id="open-cart" title="Ver carrinho">
+        
         <img src="/frontend/img/carrinho-de-compras.png" alt="Carrinho" id="cart-icon" width="40" height="40">
       </a>
     </div>
@@ -37,17 +38,27 @@
     </section>
   </main>
 
-  <!-- Modal do Carrinho -->
-  <div id="cart-modal" class="modal">
+
+  <div id="cart-modal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <span id="close-modal" class="close">&times;</span>
-      <h2>Carrinho</h2>
-      <ul id="modal-lista-carrinho"></ul>
-      <p id="modal-total">Total: R$ 0,00</p>
-      <button id="finalizar-compra">Finalizar Compra</button>
+      <div class="cart-header">
+        <h2>Meu Carrinho</h2>
+        <button class="close" id="close-cart" aria-label="Fechar">&times;</button>
+      </div>
+
+      <ul id="lista-carrinho"></ul>
+
+      <div class="cart-summary">
+        <span id="total">Total: R$ 0,00</span>
+        <div class="cart-actions">
+          <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
+          <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>
+        </div>
+      </div>
     </div>
   </div>
 
+  
   <script src="/frontend/js/script.js"></script>
 
   <footer class="footer">
@@ -67,6 +78,5 @@
     </div>
     <p class="footer-copy">&copy; 2025 Yane Moda & Bags. Todos os direitos reservados.</p>
   </footer>
-  
 </body>
 </html>
