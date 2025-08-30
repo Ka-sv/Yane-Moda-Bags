@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Yane Moda & Bags  </title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <header class="header">
+    <div class="logo">
+      <img src="/frontend/img/Logo Yane Moda & Bags.png" alt="Yane Moda & Bags">
+    </div>
+
+    <nav class="nav-menu">
+      <ul>
+        <li><a href="#">Mochilas</a></li>
+        <li><a href="#">Bolsa Feminina</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-icons">
+      <input type="text" placeholder="Buscar...">
+      <a href="#"><i class="fas fa-user"></i></a>
+      <!-- Alterado para imagem -->
+      <a href="#" id="open-cart">
+        <img src="/frontend/img/carrinho-de-compras.png" alt="Carrinho" id="cart-icon" width="40" height="40">
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section id="produtos">
+      <h2>Produtos</h2>
+      <div id="lista-produtos"></div>
+    </section>
+  </main>
+
+  <!-- Modal do Carrinho -->
+  <div id="cart-modal" class="modal">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2>Carrinho</h2>
+      <ul id="modal-lista-carrinho"></ul>
+      <p id="modal-total">Total: R$ 0,00</p>
+      <button id="finalizar-compra">Finalizar Compra</button>
+    </div>
+  </div>
+
+  <script src="/frontend/js/script.js"></script>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-logo">
+        <img class="logo-rodape" src="/frontend/img/Logo Yane Moda & Bags.png" alt="Logo da Loja">
+      </div>
+      <div class="footer-contact">
+        <p>📞 (11) 99999-9999</p>
+        <p>✉️ contato@yanemodabags.com</p>
+      </div>
+      <div class="footer-social">
+        <a href="https://instagram.com/sualoja" target="_blank">
+          <img src="/frontend/img/instagram.png" alt="Instagram">
+        </a>
+      </div>
+    </div>
+    <p class="footer-copy">&copy; 2025 Yane Moda & Bags. Todos os direitos reservados.</p>
+  </footer>
+  
+</body>
+</html>
