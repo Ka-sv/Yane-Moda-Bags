@@ -1,5 +1,10 @@
 let carrinho = [];
 
+// Detecta se está em localhost ou produção
+const API_BASE_URL = window.location.hostname.includes("localhost")
+  ? "http://localhost:3000"   // quando rodar local
+  : "https://yane-moda-bags.onrender.com"; // backend no Render
+
 // garante que o HTML do carrinho existe (para evitar erros de null)
 function ensureCartDOM() {
   const modal = document.getElementById("cart-modal");
@@ -63,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function carregarProdutos() {
   try {
-    const resposta = await fetch("/api/produtos");
+    const resposta = await fetch(`${API_BASE_URL}/produtos`);
 
     if (!resposta.ok) throw new Error("Erro ao carregar os produtos.");
 
@@ -171,8 +176,7 @@ function finalizarCompra() {
     alert("Seu carrinho está vazio.");
     return;
   }
-  // Aqui você pode integrar com checkout, WhatsApp, etc.
-  // Exemplo simples:
+  //  integrar com checkout, WhatsApp, etc.
   const resumo = carrinho.map(i => `${i.nome} x${i.quantidade} = R$ ${(i.preco * i.quantidade).toFixed(2)}`).join("\n");
   alert("Resumo do pedido:\n\n" + resumo);
 }
