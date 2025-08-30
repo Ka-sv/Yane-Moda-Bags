@@ -173,3 +173,58 @@ function finalizarCompra() {
   const resumo = carrinho.map(i => `${i.nome} x${i.quantidade} = R$ ${(i.preco * i.quantidade).toFixed(2)}`).join("\n");
   alert("Resumo do pedido:\n\n" + resumo);
 }
+
+
+const inputBusca = document.getElementById("busca-produtos");
+let produtosCarregados = []; // guardar produtos do backend
+
+async function carregarProdutos() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/produtos`);
+    if (!response.ok) throw new Error("Erro ao carregar os produtos.");
+    produtosCarregados = await response.json();
+    mostrarProdutos(produtosCarregados);
+  } catch (erro) {
+    console.error("Erro ao carregar produtos:", erro);
+  }
+}
+
+function mostrarProdutos(produtos) {
+  const lista = document.getElementById("lista-produtos");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+  if (!produtos.length) {
+    lista.innerHTML = "<p>Nenhum produto encontrado.</p>";
+    return;
+  }
+
+  produtos.forEach((p) => {
+    const div = document.createElement("div");
+    div.classList.add("card");
+    div.innerHTML = `
+      <img src="${p.imagem || 'https://via.placeholder.com/300x200'}" alt="${p.nome || ''}">
+      <h3>${p.nome}</h3>
+      <p>${p.descricao || ''}</p>
+      <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
+      <button type="button"
+        onclick="adicionarAoCarrinho('${p._id}', '${(p.nome || '').replace(/'/g, "\\'")}', ${Number(p.preco || 0)})">
+        Adicionar ao carrinho
+      </button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+// Filtro em tempo real
+if (inputBusca) {
+  inputBusca.addEventListener("input", () => {
+    const termo = inputBusca.value.toLowerCase();
+    const filtrados = produtosCarregados.filter(p =>
+      (p.nome || "").toLowerCase().includes(termo) ||
+      (p.descricao || "").toLowerCase().includes(termo) ||
+      (p.categoria || "").toLowerCase().includes(termo)
+    );
+    mostrarProdutos(filtrados);
+  });
+}
