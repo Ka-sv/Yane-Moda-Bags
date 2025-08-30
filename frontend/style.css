@@ -365,20 +365,17 @@ body {
     margin-top: 15px;
   }
   
-  /* Responsivo */
+  
   @media (max-width: 768px) {
-    .footer-container {
-      flex-direction: column;
-      text-align: center;
-    }
+    
   }
   
-  /* ===== HEADER STYLE ===== */
+  
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #add8e6;   /* cor personalizada */
+  background: #add8e6;   
   padding: 15px 40px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   position: sticky;
@@ -451,6 +448,10 @@ body {
     justify-content: space-between;
   }
   .logo img {
-    height: 50px;
+    height: 120px;
+  }
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
   }
 }
