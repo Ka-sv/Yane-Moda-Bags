@@ -360,9 +360,20 @@ body {
   }
   .header-icons input {
     width: 100%;
-    max-width: 160px;
-    font-size: 0.85rem;
+    max-width: none;      
+    font-size: 1rem;
+    padding: 10px 14px;   
+    border: 2px solid #14ffec;
+    border-radius: 10px;
+    background: #fff;
+    color: #000;
   }
+  
+  .header-icons input::placeholder {
+    color: #666;
+    font-size: 0.95rem;
+  }
+  
 
   /* Produtos */
   #produtos {
