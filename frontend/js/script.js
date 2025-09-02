@@ -61,44 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarProdutos();
 });
 
-async function carregarProdutos() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/produtos`);
-    if (!response.ok) throw new Error("Erro ao carregar os produtos.");
-
-    const produtos = await response.json();
-    const lista = document.getElementById("lista-produtos");
-    if (!lista) {
-      console.error("Elemento 'lista-produtos' não encontrado.");
-      return;
-    }
-
-    lista.innerHTML = "";
-
-    if (!Array.isArray(produtos) || produtos.length === 0) {
-      lista.innerHTML = "<p>Nenhum produto disponível.</p>";
-      return;
-    }
-
-    produtos.forEach((p) => {
-      const div = document.createElement("div");
-      div.classList.add("card");
-      div.innerHTML = `
-        <img src="${p.imagem || 'https://via.placeholder.com/300x200'}" alt="${p.nome || ''}">
-        <h3>${p.nome}</h3>
-        <p>${p.descricao || ''}</p>
-        <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
-        <button type="button"
-          onclick="adicionarAoCarrinho('${p._id}', '${(p.nome || '').replace(/'/g, "\\'")}', ${Number(p.preco || 0)})">
-          Adicionar ao carrinho
-        </button>
-      `;
-      lista.appendChild(div);
-    });
-  } catch (erro) {
-    console.error("Erro ao carregar produtos:", erro);
-  }
-}
 
 function adicionarAoCarrinho(id, nome, preco) {
   const item = carrinho.find((i) => i.id === id);
@@ -165,18 +127,10 @@ function atualizarCarrinho() {
   total.textContent = `Total: R$ ${soma.toFixed(2)}`;
 }
 
-function finalizarCompra() {
-  if (carrinho.length === 0) {
-    alert("Seu carrinho está vazio.");
-    return;
-  }
-  const resumo = carrinho.map(i => `${i.nome} x${i.quantidade} = R$ ${(i.preco * i.quantidade).toFixed(2)}`).join("\n");
-  alert("Resumo do pedido:\n\n" + resumo);
-}
 
 
 const inputBusca = document.getElementById("busca-produtos");
-let produtosCarregados = []; // guardar produtos do backend
+let produtosCarregados = []; 
 
 async function carregarProdutos() {
   try {
@@ -227,4 +181,98 @@ if (inputBusca) {
     );
     mostrarProdutos(filtrados);
   });
+}
+
+
+// AJUSTE NO TOPO DO script.js: nada muda no seu API_BASE_URL
+
+async function finalizarCompra() {
+  if (carrinho.length === 0) {
+    alert("Seu carrinho está vazio.");
+    return;
+  }
+
+  // monta payload de itens p/ backend
+  const itens = carrinho.map(i => ({
+    id: i.id, nome: i.nome, quantidade: i.quantidade, preco: i.preco
+  }));
+
+  try {
+    // 1) cria a cobrança Pix no backend (PSP escolhido)
+    const res = await fetch(`${API_BASE_URL}/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itens /* + endereco + frete + contato */ })
+    });
+    if (!res.ok) throw new Error("Falha ao iniciar checkout.");
+    const { orderId, amount, pix_qr_base64, pix_copia_cola } = await res.json();
+
+    // 2) abre modal com QR + copia e cola
+    abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola });
+
+    // 3) começa polling do status
+    iniciarPollingStatus(orderId);
+  } catch (e) {
+    console.error(e);
+    alert("Não foi possível finalizar. Tente novamente.");
+  }
+}
+
+function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
+  const modal = document.getElementById("pix-modal");
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+
+  document.getElementById("pix-total").textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
+  document.getElementById("pix-qr").src = `data:image/png;base64,${pix_qr_base64}`;
+  const copia = document.getElementById("pix-copia-cola");
+  copia.value = pix_copia_cola;
+
+  document.getElementById("copy-pix").onclick = async () => {
+    await navigator.clipboard.writeText(copia.value);
+    document.getElementById("pix-status").textContent = "Código Pix copiado!";
+  };
+
+  document.getElementById("close-pix").onclick = () => fecharPixModal();
+  iniciarTimer(15 * 60); // 15 minutos
+}
+
+function fecharPixModal() {
+  const modal = document.getElementById("pix-modal");
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+let pollingInterval = null;
+function iniciarPollingStatus(orderId) {
+  const statusEl = document.getElementById("pix-status");
+  if (pollingInterval) clearInterval(pollingInterval);
+  pollingInterval = setInterval(async () => {
+    try {
+      const r = await fetch(`${API_BASE_URL}/orders/${orderId}/status`);
+      const { status } = await r.json(); // "pending" | "paid" | "expired"
+      statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
+                             status === "paid" ? "Pagamento confirmado! 🎉" :
+                             "Cobrança expirada. Gere outra.";
+      if (status === "paid" || status === "expired") {
+        clearInterval(pollingInterval);
+        if (status === "paid") {
+          limparCarrinho();
+          // redirecionar para página de obrigado
+          window.location.href = "/obrigado.html";
+        }
+      }
+    } catch {}
+  }, 4000);
+}
+
+function iniciarTimer(totalSegundos) {
+  const el = document.getElementById("pix-timer");
+  let s = totalSegundos;
+  const id = setInterval(() => {
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const ss = (s % 60).toString().padStart(2, "0");
+    el.textContent = `Expira em ${m}:${ss}`;
+    if (--s < 0) clearInterval(id);
+  }, 1000);
 }

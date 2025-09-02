@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const routesCheckout = require("./routes/routesCheckout");
+app.use("/api/checkout", routesCheckout);
+
 
 const app = express();
 
