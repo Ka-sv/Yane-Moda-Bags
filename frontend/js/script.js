@@ -1,11 +1,10 @@
 let carrinho = [];
 
-// Detecta se está em localhost ou produção
 const API_BASE_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:3000"   // quando rodar local
-  : "https://yane-moda-bags.onrender.com/api"; // backend no Render (ajustado com /api)
+  ? "http://localhost:3000"
+  : "https://yane-moda-bags.onrender.com/api";
 
-// garante que o HTML do carrinho existe (para evitar erros de null)
+
 function ensureCartDOM() {
   const modal = document.getElementById("cart-modal");
   const lista = document.getElementById("lista-carrinho");
@@ -18,36 +17,19 @@ function ensureCartDOM() {
   return { modal, lista, total, limparBtn, finalizarBtn, openCart, closeCart };
 }
 
+
 document.addEventListener("DOMContentLoaded", () => {
   const { modal, lista, total, limparBtn, finalizarBtn, openCart, closeCart } = ensureCartDOM();
 
-  if (!modal || !lista || !total) {
-    console.warn("Estrutura do carrinho não encontrada. Verifique o HTML da modal do carrinho.");
-  } else {
-    if (openCart) {
-      openCart.addEventListener("click", (e) => {
-        e.preventDefault();
-        modal.classList.add("show");
-        modal.setAttribute("aria-hidden", "false");
-      });
-    }
-    if (closeCart) {
-      closeCart.addEventListener("click", () => {
-        modal.classList.remove("show");
-        modal.setAttribute("aria-hidden", "true");
-      });
-    }
-    window.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.remove("show");
-        modal.setAttribute("aria-hidden", "true");
-      }
-    });
-
+  if (!modal || !lista || !total) console.warn("Estrutura do carrinho não encontrada.");
+  else {
+    if (openCart) openCart.addEventListener("click", e => { e.preventDefault(); modal.classList.add("show"); modal.setAttribute("aria-hidden","false"); });
+    if (closeCart) closeCart.addEventListener("click", () => { modal.classList.remove("show"); modal.setAttribute("aria-hidden","true"); });
+    window.addEventListener("click", e => { if(e.target===modal){ modal.classList.remove("show"); modal.setAttribute("aria-hidden","true"); }});
     if (limparBtn) limparBtn.addEventListener("click", limparCarrinho);
     if (finalizarBtn) finalizarBtn.addEventListener("click", finalizarCompra);
-
-    lista.addEventListener("click", (e) => {
+    
+    lista.addEventListener("click", e => {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
       const id = btn.getAttribute("data-id");
@@ -57,31 +39,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Carregar produtos
   carregarProdutos();
 });
 
 
 function adicionarAoCarrinho(id, nome, preco) {
-  const item = carrinho.find((i) => i.id === id);
+  const item = carrinho.find(i => i.id === id);
   if (item) item.quantidade++;
   else carrinho.push({ id, nome, preco: Number(preco || 0), quantidade: 1 });
   atualizarCarrinho();
 }
 
 function aumentarQuantidade(id) {
-  const item = carrinho.find((i) => i.id === id);
-  if (item) item.quantidade++;
+  const item = carrinho.find(i => i.id === id);
+  if(item) item.quantidade++;
   atualizarCarrinho();
 }
 
 function diminuirQuantidade(id) {
-  const item = carrinho.find((i) => i.id === id);
-  if (!item) return;
+  const item = carrinho.find(i => i.id === id);
+  if(!item) return;
   item.quantidade--;
-  if (item.quantidade <= 0) {
-    carrinho = carrinho.filter((i) => i.id !== id);
-  }
+  if(item.quantidade<=0) carrinho = carrinho.filter(i => i.id!==id);
   atualizarCarrinho();
 }
 
@@ -97,13 +76,13 @@ function atualizarCarrinho() {
   lista.innerHTML = "";
   let soma = 0;
 
-  if (carrinho.length === 0) {
+  if(carrinho.length === 0){
     lista.innerHTML = `<li class="cart-item"><span class="item-info">Seu carrinho está vazio.</span></li>`;
     total.textContent = `Total: R$ 0,00`;
     return;
   }
 
-  carrinho.forEach((item) => {
+  carrinho.forEach(item => {
     const subtotal = item.preco * item.quantidade;
     soma += subtotal;
 
@@ -128,14 +107,13 @@ function atualizarCarrinho() {
 }
 
 
-
 const inputBusca = document.getElementById("busca-produtos");
-let produtosCarregados = []; 
+let produtosCarregados = [];
 
 async function carregarProdutos() {
   try {
     const response = await fetch(`${API_BASE_URL}/produtos`);
-    if (!response.ok) throw new Error("Erro ao carregar os produtos.");
+    if(!response.ok) throw new Error("Erro ao carregar os produtos.");
     produtosCarregados = await response.json();
     mostrarProdutos(produtosCarregados);
   } catch (erro) {
@@ -143,17 +121,17 @@ async function carregarProdutos() {
   }
 }
 
-function mostrarProdutos(produtos) {
+function mostrarProdutos(produtos){
   const lista = document.getElementById("lista-produtos");
-  if (!lista) return;
+  if(!lista) return;
 
   lista.innerHTML = "";
-  if (!produtos.length) {
+  if(!produtos.length){
     lista.innerHTML = "<p>Nenhum produto encontrado.</p>";
     return;
   }
 
-  produtos.forEach((p) => {
+  produtos.forEach(p => {
     const div = document.createElement("div");
     div.classList.add("card");
     div.innerHTML = `
@@ -162,7 +140,7 @@ function mostrarProdutos(produtos) {
       <p>${p.descricao || ''}</p>
       <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
       <button type="button"
-        onclick="adicionarAoCarrinho('${p._id}', '${(p.nome || '').replace(/'/g, "\\'")}', ${Number(p.preco || 0)})">
+        onclick="adicionarAoCarrinho('${p._id}', '${(p.nome||'').replace(/'/g,"\\'")}', ${Number(p.preco||0)})">
         Adicionar ao carrinho
       </button>
     `;
@@ -170,8 +148,7 @@ function mostrarProdutos(produtos) {
   });
 }
 
-// Filtro em tempo real
-if (inputBusca) {
+if(inputBusca){
   inputBusca.addEventListener("input", () => {
     const termo = inputBusca.value.toLowerCase();
     const filtrados = produtosCarregados.filter(p =>
@@ -184,44 +161,50 @@ if (inputBusca) {
 }
 
 
-// AJUSTE NO TOPO DO script.js: nada muda no seu API_BASE_URL
-
 async function finalizarCompra() {
-  if (carrinho.length === 0) {
-    alert("Seu carrinho está vazio.");
-    return;
-  }
+  if(carrinho.length===0){ alert("Seu carrinho está vazio."); return; }
 
-  // monta payload de itens p/ backend
-  const itens = carrinho.map(i => ({
-    id: i.id, nome: i.nome, quantidade: i.quantidade, preco: i.preco
-  }));
+  const itens = carrinho.map(i=>({ id:i.id, nome:i.nome, quantidade:i.quantidade, preco:i.preco }));
 
   try {
-    // 1) cria a cobrança Pix no backend (PSP escolhido)
+    console.log("Enviando dados para o backend:", itens);
+
     const res = await fetch(`${API_BASE_URL}/checkout`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itens /* + endereco + frete + contato */ })
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ itens })
     });
-    if (!res.ok) throw new Error("Falha ao iniciar checkout.");
-    const { orderId, amount, pix_qr_base64, pix_copia_cola } = await res.json();
 
-    // 2) abre modal com QR + copia e cola
+    console.log("Resposta do fetch:", res.status, res.ok);
+    if(!res.ok){
+      const erroTexto = await res.text();
+      console.error("Erro no backend:", erroTexto);
+      throw new Error("Falha ao iniciar checkout.");
+    }
+
+    const data = await res.json();
+    console.log("Dados retornados do backend:", data);
+
+    const { orderId, amount, pix_qr_base64, pix_copia_cola } = data;
+    if(!orderId || !pix_qr_base64 || !pix_copia_cola){
+      console.error("Dados incompletos recebidos do backend:", data);
+      throw new Error("Dados do pagamento incompletos.");
+    }
+
     abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola });
-
-    // 3) começa polling do status
     iniciarPollingStatus(orderId);
-  } catch (e) {
-    console.error(e);
-    alert("Não foi possível finalizar. Tente novamente.");
+
+  } catch(e){
+    console.error("Erro ao finalizar compra:", e);
+    alert("Não foi possível finalizar. Tente novamente. Veja o console para detalhes.");
   }
 }
 
-function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
+
+function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }){
   const modal = document.getElementById("pix-modal");
   modal.classList.add("show");
-  modal.setAttribute("aria-hidden", "false");
+  modal.setAttribute("aria-hidden","false");
 
   document.getElementById("pix-total").textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
   document.getElementById("pix-qr").src = `data:image/png;base64,${pix_qr_base64}`;
@@ -234,45 +217,49 @@ function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
   };
 
   document.getElementById("close-pix").onclick = () => fecharPixModal();
-  iniciarTimer(15 * 60); // 15 minutos
+  iniciarTimer(15*60);
 }
 
-function fecharPixModal() {
+function fecharPixModal(){
   const modal = document.getElementById("pix-modal");
   modal.classList.remove("show");
-  modal.setAttribute("aria-hidden", "true");
+  modal.setAttribute("aria-hidden","true");
 }
+
 
 let pollingInterval = null;
-function iniciarPollingStatus(orderId) {
+function iniciarPollingStatus(orderId){
   const statusEl = document.getElementById("pix-status");
-  if (pollingInterval) clearInterval(pollingInterval);
-  pollingInterval = setInterval(async () => {
-    try {
+  if(pollingInterval) clearInterval(pollingInterval);
+
+  pollingInterval = setInterval(async ()=>{
+    try{
       const r = await fetch(`${API_BASE_URL}/orders/${orderId}/status`);
-      const { status } = await r.json(); // "pending" | "paid" | "expired"
-      statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
-                             status === "paid" ? "Pagamento confirmado! 🎉" :
+      const { status } = await r.json();
+      statusEl.textContent = status==="pending" ? "Aguardando pagamento..." :
+                             status==="paid" ? "Pagamento confirmado! 🎉" :
                              "Cobrança expirada. Gere outra.";
-      if (status === "paid" || status === "expired") {
+
+      if(status==="paid" || status==="expired"){
         clearInterval(pollingInterval);
-        if (status === "paid") {
+        if(status==="paid"){
           limparCarrinho();
-          // redirecionar para página de obrigado
-          window.location.href = "/obrigado.html";
+          window.location.href="/obrigado.html";
         }
       }
-    } catch {}
-  }, 4000);
+
+    }catch(err){ console.error(err); }
+  },4000);
 }
 
-function iniciarTimer(totalSegundos) {
+
+function iniciarTimer(totalSegundos){
   const el = document.getElementById("pix-timer");
   let s = totalSegundos;
-  const id = setInterval(() => {
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const ss = (s % 60).toString().padStart(2, "0");
+  const id = setInterval(()=>{
+    const m = Math.floor(s/60).toString().padStart(2,"0");
+    const ss = (s%60).toString().padStart(2,"0");
     el.textContent = `Expira em ${m}:${ss}`;
-    if (--s < 0) clearInterval(id);
-  }, 1000);
+    if(--s<0) clearInterval(id);
+  },1000);
 }
