@@ -9,6 +9,7 @@ const router = express.Router();
 mercadopago.configure({
   access_token: process.env.MP_ACCESS_TOKEN,
 });
+console.log("🔑 MP_ACCESS_TOKEN carregado?", process.env.MP_ACCESS_TOKEN ? "SIM" : "NÃO");
 
 // Criar cobrança Pix
 router.post("/", async (req, res) => {
