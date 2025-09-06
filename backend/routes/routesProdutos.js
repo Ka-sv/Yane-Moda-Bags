@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Produto = require("../models/produto");
-const produtoRoutes = require("./routes/routesProdutos");
+
 
 
 
@@ -16,11 +16,15 @@ router.get("/", async (req, res) => {
 });
 
 
-// Adicionar novo produto
 router.post("/", async (req, res) => {
-  const novoProduto = new Produto(req.body);
-  await novoProduto.save();
-  res.json(novoProduto);
+  try {
+    const novoProduto = new Produto(req.body);
+    await novoProduto.save();
+    res.json(novoProduto);
+  } catch (err) {
+    console.error("Erro ao adicionar produto:", err.message);
+    res.status(500).json({ error: "Erro ao adicionar produto" });
+  }
 });
 
 module.exports = router;
