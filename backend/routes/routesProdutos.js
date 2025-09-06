@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const Produto = require("../models/produto");
+const produtoRoutes = require("./routes/routesProdutos");
 
 
-// Listar todos os produtos
+
 router.get("/", async (req, res) => {
-  const produtos = await Produto.find();
-  res.json(produtos);
+  try {
+    const produtos = await Produto.find();
+    res.json(produtos);
+  } catch (err) {
+    console.error("Erro ao buscar produtos:", err.message);
+    res.status(500).json({ error: "Erro ao buscar produtos" });
+  }
 });
+
 
 // Adicionar novo produto
 router.post("/", async (req, res) => {
@@ -17,3 +24,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
