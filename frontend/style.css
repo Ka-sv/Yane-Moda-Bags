@@ -108,11 +108,13 @@ body {
 }
 
 #lista-produtos .card img {
-  max-width: 100%;
-  height: auto;
+  max-width: 220px;  /* largura máxima da imagem */
+  width: 100%;       /* responsivo dentro do card */
+  height: auto;      /* mantém proporção */
   border-radius: 8px;
   margin-bottom: 12px;
 }
+
 
 #lista-produtos .card h3 {
   font-size: 1.2rem;
