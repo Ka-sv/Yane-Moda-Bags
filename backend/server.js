@@ -30,3 +30,21 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+
+
+const webhookRoutes = require("./routes/routesWebhookMp");
+app.use("/api/mp/webhook", webhookRoutes);
+
+
+app.get("/orders/:id/status", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    
+    res.json({ status: "pending" });
+  } catch (e) {
+    console.error("Erro ao consultar status:", e);
+    res.status(500).json({ error: "Falha ao consultar status" });
+  }
+});
+
