@@ -15,9 +15,10 @@ app.use(express.json());
 const produtoRoutes = require("./routes/routesProdutos");
 app.use("/api/produtos", produtoRoutes);
 
-// Rota de checkout/Pix
-const checkoutRoutes = require("./routes/checkout"); // <-- aqui o arquivo que você criou
+
+const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
+
 
 // Conexão com MongoDB
 mongoose.connect(process.env.MONGO_URI, {
