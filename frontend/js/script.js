@@ -104,7 +104,6 @@ function atualizarCarrinho() {
   total.textContent = `Total: R$ ${soma.toFixed(2)}`;
 }
 
-
 const inputBusca = document.getElementById("busca-produtos");
 let produtosCarregados = [];
 
@@ -162,21 +161,31 @@ if(inputBusca){
 
 
 async function finalizarCompra() {
-  if(carrinho.length===0){ alert("Seu carrinho está vazio."); return; }
+  if (carrinho.length === 0) { 
+    alert("Seu carrinho está vazio."); 
+    return; 
+  }
 
-  const itens = carrinho.map(i=>({ id:i.id, nome:i.nome, quantidade:i.quantidade, preco:i.preco }));
+  const itens = carrinho.map(i => ({ 
+    id: i.id, 
+    nome: i.nome, 
+    quantidade: i.quantidade, 
+    preco: i.preco 
+  }));
+
+  const email = document.getElementById("checkout-email")?.value || "";
 
   try {
-    console.log("Enviando dados para o backend:", itens);
+    console.log("Enviando dados para o backend:", { itens, email });
 
     const res = await fetch(`${API_BASE_URL}/api/checkout`, {
       method: "POST",
       headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ itens })
+      body: JSON.stringify({ itens, email })
     });
     
     console.log("Resposta do fetch:", res.status, res.ok);
-    if(!res.ok){
+    if (!res.ok) {
       const erroTexto = await res.text();
       console.error("Erro no backend:", erroTexto);
       throw new Error("Falha ao iniciar checkout.");
@@ -186,7 +195,7 @@ async function finalizarCompra() {
     console.log("Dados retornados do backend:", data);
 
     const { orderId, amount, pix_qr_base64, pix_copia_cola } = data;
-    if(!orderId || !pix_qr_base64 || !pix_copia_cola){
+    if (!orderId || !pix_qr_base64 || !pix_copia_cola) {
       console.error("Dados incompletos recebidos do backend:", data);
       throw new Error("Dados do pagamento incompletos.");
     }
@@ -194,7 +203,7 @@ async function finalizarCompra() {
     abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola });
     iniciarPollingStatus(orderId);
 
-  } catch(e){
+  } catch (e) {
     console.error("Erro ao finalizar compra:", e);
     alert("Não foi possível finalizar. Tente novamente. Veja o console para detalhes.");
   }

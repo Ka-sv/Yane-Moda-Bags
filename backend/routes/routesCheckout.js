@@ -27,7 +27,8 @@ router.post("/", async (req, res) => {
       date_of_expiration: expiresAt,
       external_reference: String(orderId || Date.now()),
       notification_url: `${process.env.APP_URL}/api/mp/webhook`,
-      payer: { email: "cliente@example.com" },
+      payer: { email: req.body.email || "teste@yane.com" },
+
     };
 
     const idempotencyKey = uuidv4();
