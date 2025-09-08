@@ -110,7 +110,9 @@ let produtosCarregados = [];
 
 async function carregarProdutos() {
   try {
-    const response = await fetch(`${API_BASE_URL}/produtos`);
+    
+    const response = await fetch(`${API_BASE_URL}/api/produtos`);
+
     if(!response.ok) throw new Error("Erro ao carregar os produtos.");
     produtosCarregados = await response.json();
     mostrarProdutos(produtosCarregados);
