@@ -1,9 +1,7 @@
 let carrinho = [];
-
 const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:3000"
-  : "https://yane-moda-bags.onrender.com/api";
-
+  : "https://yane-moda-bags.onrender.com";
 
 function ensureCartDOM() {
   const modal = document.getElementById("cart-modal");
