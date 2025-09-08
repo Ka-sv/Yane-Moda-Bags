@@ -169,12 +169,12 @@ async function finalizarCompra() {
   try {
     console.log("Enviando dados para o backend:", itens);
 
-    const res = await fetch(`${API_BASE_URL}/checkout`, {
+    const res = await fetch(`${API_BASE_URL}/api/checkout`, {
       method: "POST",
       headers: { "Content-Type":"application/json" },
       body: JSON.stringify({ itens })
     });
-
+    
     console.log("Resposta do fetch:", res.status, res.ok);
     if(!res.ok){
       const erroTexto = await res.text();
