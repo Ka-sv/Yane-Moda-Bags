@@ -1,12 +1,11 @@
-import express from "express";
-import { v4 as uuidv4 } from "uuid";
-import mpClient from "../config/mercadopago.js"; // importa config
-import { Payment } from "mercadopago"; // importa a classe Payment
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
+const mpClient = require("../config/mercadopago.js");
+const { Payment } = require("mercadopago");
 
 const router = express.Router();
-const payment = new Payment(mpClient); // cria instância
+const payment = new Payment(mpClient);
 
-// Criar cobrança Pix
 router.post("/", async (req, res) => {
   try {
     const { itens, orderId } = req.body;
@@ -16,9 +15,7 @@ router.post("/", async (req, res) => {
     }
 
     const amount = Number(
-      itens
-        .reduce((s, i) => s + Number(i.preco) * Number(i.quantidade || 1), 0)
-        .toFixed(2)
+      itens.reduce((s, i) => s + Number(i.preco) * Number(i.quantidade || 1), 0).toFixed(2)
     );
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -35,7 +32,6 @@ router.post("/", async (req, res) => {
 
     const idempotencyKey = uuidv4();
 
-    // No SDK novo precisa envolver em { body: ... }
     const result = await payment.create({
       body: paymentData,
       requestOptions: { idempotencyKey },
@@ -58,4 +54,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
