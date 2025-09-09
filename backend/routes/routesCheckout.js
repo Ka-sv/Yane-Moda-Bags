@@ -35,6 +35,8 @@ router.post("/", async (req, res) => {
 
     const idempotencyKey = uuidv4();
 
+    console.log("🔑 MP_ACCESS_TOKEN carregado?", !!process.env.MP_ACCESS_TOKEN);
+
     const result = await payment.create({
       body: paymentData,
       requestOptions: { idempotencyKey },
