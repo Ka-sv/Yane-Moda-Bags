@@ -48,3 +48,15 @@ app.get("/orders/:id/status", async (req, res) => {
   }
 });
 
+require("dotenv").config();
+const express = require("express");
+
+const webhookRoutes = require("./routes/webhook");
+
+app.use(express.json());
+
+// Rotas de webhook
+app.use("/api/webhook", webhookRoutes);
+
+
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
