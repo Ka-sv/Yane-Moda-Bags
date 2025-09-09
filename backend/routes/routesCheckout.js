@@ -58,13 +58,17 @@ router.post("/", async (req, res) => {
     });
   } catch (e) {
     console.error("❌ Erro ao criar pagamento Pix:", e);
-
+  
     if (e.cause) {
-      console.error("Detalhes:", e.cause);
+      console.error("📌 Detalhes Mercado Pago:", JSON.stringify(e.cause, null, 2));
     }
-
-    res.status(500).json({ error: "Falha ao criar pagamento Pix" });
+  
+    res.status(500).json({
+      error: "Falha ao criar pagamento Pix",
+      detalhes: e.cause || e.message || e
+    });
   }
+  
 });
 
 module.exports = router;
