@@ -166,14 +166,18 @@ async function finalizarCompra() {
     return; 
   }
 
+  const email = document.getElementById("checkout-email")?.value.trim();
+  if (!email) {
+    alert("Por favor, digite seu email para gerar o Pix");
+    return;
+  }
+
   const itens = carrinho.map(i => ({ 
     id: i.id, 
     nome: i.nome, 
     quantidade: i.quantidade, 
     preco: i.preco 
   }));
-
-  const email = document.getElementById("checkout-email")?.value || "";
 
   try {
     console.log("Enviando dados para o backend:", { itens, email });
@@ -184,7 +188,6 @@ async function finalizarCompra() {
       body: JSON.stringify({ itens, email })
     });
     
-    console.log("Resposta do fetch:", res.status, res.ok);
     if (!res.ok) {
       const erroTexto = await res.text();
       console.error("Erro no backend:", erroTexto);
@@ -192,23 +195,19 @@ async function finalizarCompra() {
     }
 
     const data = await res.json();
-    console.log("Dados retornados do backend:", data);
-
-    const { orderId, amount, pix_qr_base64, pix_copia_cola } = data;
-    if (!orderId || !pix_qr_base64 || !pix_copia_cola) {
-      console.error("Dados incompletos recebidos do backend:", data);
-      throw new Error("Dados do pagamento incompletos.");
-    }
-
-    abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola });
-    iniciarPollingStatus(orderId);
+    abrirPixModal(data);
+    iniciarPollingStatus(data.orderId);
 
   } catch (e) {
     console.error("Erro ao finalizar compra:", e);
     alert("Não foi possível finalizar. Tente novamente. Veja o console para detalhes.");
   }
 }
+ 
 
+
+
+ n 
 
 function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }){
   const modal = document.getElementById("pix-modal");
@@ -272,3 +271,15 @@ function iniciarTimer(totalSegundos){
     if(--s<0) clearInterval(id);
   },1000);
 }
+
+
+const email = document.getElementById("email").value;
+if (!email) {
+  alert("Por favor, digite seu email para gerar o Pix");
+  return;
+}
+
+const dados = {
+  itens: carrinho,
+  email: email
+};

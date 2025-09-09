@@ -50,15 +50,21 @@
 
       <div class="cart-summary">
         <span id="total">Total: R$ 0,00</span>
+      
+        <div class="checkout-email">
+          <label for="checkout-email">E-mail:</label>
+          <input type="email" id="checkout-email" placeholder="Digite seu e-mail" required>
+        </div>
+      
         <div class="cart-actions">
           <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
           <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>
         </div>
       </div>
+      
     </div>
   </div>
  
-
       <!-- < modal  o PIX --> 
     <div id="pix-modal" class="modal" aria-hidden="true">
       <div class="modal-content">
@@ -70,18 +76,12 @@
           <input id="pix-copia-cola" readonly />
           <button id="copy-pix">Copiar</button>
         </div>
-        <div class="checkout-email">
-          <label for="checkout-email">E-mail:</label>
-          <input type="email" id="checkout-email" placeholder="Digite seu e-mail" required>
-        </div>
         
         <p id="pix-timer"></p>
         <p id="pix-status"></p>
       </div>
     </div>
 
-
-  
   <script src="/frontend/js/script.js"></script>
 
   <footer class="footer">
