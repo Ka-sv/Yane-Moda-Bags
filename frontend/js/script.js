@@ -273,13 +273,3 @@ function iniciarTimer(totalSegundos){
 }
 
 
-const email = document.getElementById("email").value;
-if (!email) {
-  alert("Por favor, digite seu email para gerar o Pix");
-  return;
-}
-
-const dados = {
-  itens: carrinho,
-  email: email
-};
