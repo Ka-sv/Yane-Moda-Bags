@@ -204,10 +204,7 @@ async function finalizarCompra() {
   }
 }
  
-
-
-
- n 
+ 
 
 function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }){
   const modal = document.getElementById("pix-modal");

@@ -8,14 +8,17 @@ const payment = new Payment(mpClient);
 
 router.post("/", async (req, res) => {
   try {
-    const { itens, orderId } = req.body;
+    const { itens, orderId, email } = req.body;
 
     if (!itens || !Array.isArray(itens) || itens.length === 0) {
       return res.status(400).json({ error: "Itens inválidos" });
     }
 
     const amount = Number(
-      itens.reduce((s, i) => s + Number(i.preco) * Number(i.quantidade || 1), 0).toFixed(2)
+      itens.reduce(
+        (s, i) => s + Number(i.preco) * Number(i.quantidade || 1),
+        0
+      ).toFixed(2)
     );
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -27,8 +30,7 @@ router.post("/", async (req, res) => {
       date_of_expiration: expiresAt,
       external_reference: String(orderId || Date.now()),
       notification_url: `${process.env.APP_URL}/api/mp/webhook`,
-      payer: { email: req.body.email || "teste@yane.com" },
-
+      payer: { email: email || "teste@yane.com" },
     };
 
     const idempotencyKey = uuidv4();
@@ -38,19 +40,27 @@ router.post("/", async (req, res) => {
       requestOptions: { idempotencyKey },
     });
 
-    const tx = result.point_of_interaction?.transaction_data || {};
+   
+    const data = result.body;
+
+    const tx = data.point_of_interaction?.transaction_data || {};
 
     res.json({
-      orderId: result.id,
+      orderId: data.id,
       amount,
       expiresAt,
       pix_qr_base64: tx.qr_code_base64,
       pix_copia_cola: tx.qr_code,
       ticket_url: tx.ticket_url || null,
-      status: result.status,
+      status: data.status,
     });
   } catch (e) {
-    console.error("Erro ao criar pagamento Pix:", e);
+    console.error("❌ Erro ao criar pagamento Pix:", e);
+
+    if (e.cause) {
+      console.error("Detalhes:", e.cause);
+    }
+
     res.status(500).json({ error: "Falha ao criar pagamento Pix" });
   }
 });
