@@ -8,7 +8,9 @@ const router = express.Router();
 if (!process.env.MP_ACCESS_TOKEN) {
   console.error("❌ MP_ACCESS_TOKEN não definido no .env");
 }
-mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
+// mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
+mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN_SANDBOX);
+
 
 // Função auxiliar para validar itens
 function validarItens(itens) {
