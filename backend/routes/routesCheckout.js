@@ -2,14 +2,14 @@ const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 const mercadopago = require("mercadopago");
 
-const router = express.Router();
+// const router = express.Router();
 
 // Configura o token do Mercado Pago
 if (!process.env.MP_ACCESS_TOKEN) {
   console.error("❌ MP_ACCESS_TOKEN não definido no .env");
 }
 // mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN);
-mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN_SANDBOX);
+// mercadopago.configurations.setAccessToken(process.env.MP_ACCESS_TOKEN_SANDBOX);
 
 
 // Função auxiliar para validar itens
@@ -87,6 +87,54 @@ router.post("/", async (req, res) => {
       error: "Falha ao criar pagamento Pix",
       detalhes: e.cause || e.message || e
     });
+  }
+});
+
+module.exports = router;
+
+
+const express = require("express");
+const mercadopago = require("mercadopago");
+const router = express.Router();
+
+// Verifica ambiente
+const isSandbox = process.env.NODE_ENV !== "production";
+
+// Usa o token correto
+mercadopago.configurations.setAccessToken(
+  isSandbox ? process.env.MP_ACCESS_TOKEN_SANDBOX : process.env.MP_ACCESS_TOKEN
+);
+
+router.post("/", async (req, res) => {
+  try {
+    const { itens, email } = req.body;
+
+    const preference = {
+      items: itens.map(item => ({
+        title: item.nome,
+        unit_price: Number(item.preco),
+        quantity: item.quantidade,
+        currency_id: "BRL"
+      })),
+      payer: { email },
+      payment_methods: {
+        excluded_payment_types: [{ id: "ticket" }],
+        installments: 1
+      },
+      back_urls: {
+        success: "https://yane-moda-bags.vercel.app/sucesso",
+        failure: "https://yane-moda-bags.vercel.app/falha",
+        pending: "https://yane-moda-bags.vercel.app/pendente"
+      },
+      auto_return: "approved"
+    };
+
+    const response = await mercadopago.preferences.create(preference);
+
+    res.json({ id: response.body.id });
+  } catch (error) {
+    console.error("Erro no checkout:", error);
+    res.status(500).json({ error: "Falha ao criar checkout" });
   }
 });
 

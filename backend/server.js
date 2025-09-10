@@ -5,42 +5,27 @@ const cors = require("cors");
 
 const app = express();
 
+// Middleware
 app.use(cors({
   origin: "https://yane-moda-bags.vercel.app"  
 }));
-
 app.use(express.json());
 
 // Rotas de produtos
 const produtoRoutes = require("./routes/routesProdutos");
 app.use("/api/produtos", produtoRoutes);
 
-
+// Rota de checkout
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
 
-
-// Conexão com MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("MongoDB conectado!"))
-.catch(err => console.error("Erro MongoDB:", err));
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
-
-
-const webhookRoutes = require("./routes/routesWebhookMp");
-app.use("/api/mp/webhook", webhookRoutes);
+// Webhook do Mercado Pago
+const webhookRoutesMp = require("./routes/routesWebhookMp");
+app.use("/api/mp/webhook", webhookRoutesMp);
 
 
 app.get("/orders/:id/status", async (req, res) => {
-  const { id } = req.params;
-
   try {
-    
     res.json({ status: "pending" });
   } catch (e) {
     console.error("Erro ao consultar status:", e);
@@ -48,15 +33,10 @@ app.get("/orders/:id/status", async (req, res) => {
   }
 });
 
-require("dotenv").config();
-const express = require("express");
+// Conexão com MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB conectado!"))
+  .catch(err => console.error("Erro MongoDB:", err));
 
-const webhookRoutes = require("./routes/webhook");
-
-app.use(express.json());
-
-// Rotas de webhook
-app.use("/api/webhook", webhookRoutes);
-
-
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

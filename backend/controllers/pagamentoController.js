@@ -1,34 +1,36 @@
-// Aqui você processa os eventos recebidos do Mercado Pago
-const processarEvento = (event) => {
+
+const { Payment } = require("mercadopago");
+const mpClient = require("../config/mpClient"); 
+
+
+
+const processarEvento = async (event) => {
+  try {
     console.log("Evento recebido:", event);
-  
-    const { type, data } = event;
-  
-    switch (type) {
-      case "payment.created":
-        console.log("Pagamento criado:", data);
-        // atualizarPedido(data.id, "criado");
-        break;
-  
-      case "payment.updated":
-        console.log("Pagamento atualizado:", data);
-        // atualizarPedido(data.id, data.status);
-        break;
-  
-      case "refund.created":
-        console.log("Estorno criado:", data);
-        // atualizarPedido(data.id, "estornado");
-        break;
-  
-      case "chargeback.created":
-        console.log("Contestação criada:", data);
-        // atualizarPedido(data.id, "contestacao");
-        break;
-  
-      default:
-        console.log("Evento não tratado:", type);
+
+    if (event.type === "payment") {
+      const paymentId = event.data.id;
+
+      // Consulta o pagamento no Mercado Pago
+      const payment = await new Payment(mpClient).get({ id: paymentId });
+
+      console.log("Detalhes do pagamento:", payment);
+
+      // Exemplo de atualização no banco de dados:
+      // atualizarPedido(paymentId, payment.status);
+
+      /*
+        payment.status pode ser:
+        - "approved"  → pagamento confirmado
+        - "pending"   → aguardando pagamento
+        - "rejected"  → falhou
+      */
+    } else {
+      console.log("Evento ignorado:", event.type);
     }
-  };
-  
-  module.exports = { processarEvento };
-  
+  } catch (error) {
+    console.error("Erro ao processar evento:", error);
+  }
+};
+
+module.exports = { processarEvento };
