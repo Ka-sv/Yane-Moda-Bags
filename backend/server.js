@@ -40,3 +40,19 @@ mongoose.connect(process.env.MONGO_URI)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+
+const allowedOrigins = [
+  "https://yane-moda-bags.vercel.app", 
+  "http://127.0.0.1:5500",             
+  "http://localhost:5500"              
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
+}));
