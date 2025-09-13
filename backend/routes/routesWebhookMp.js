@@ -1,75 +1,102 @@
 const express = require("express");
-const crypto = require("crypto");
+const { v4: uuidv4 } = require("uuid");
 const mercadopago = require("mercadopago");
+const Pedido = require("../models/Pedido"); // novo modelo de pedidos
 
 const router = express.Router();
 
-const MP_WEBHOOK_SECRET = process.env.MP_WEBHOOK_SECRET;
+// Configura ambiente (sandbox em dev, produção em prod)
+mercadopago.configurations.setAccessToken(
+  process.env.NODE_ENV !== "production"
+    ? process.env.MP_ACCESS_TOKEN_SANDBOX
+    : process.env.MP_ACCESS_TOKEN
+);
 
-// Função para validar assinatura do Mercado Pago
-function verifySignature(xSignature, xRequestId, paymentId) {
-  if (!xSignature || !xRequestId || !paymentId || !MP_WEBHOOK_SECRET) return false;
-
-  // Cabeçalho vem como: ts=...,v1=...
-  const parts = xSignature.split(",");
-  let ts = null;
-  let v1 = null;
-
-  for (const p of parts) {
-    const [k, v] = p.split("=");
-    if (k?.trim() === "ts") ts = v?.trim();
-    if (k?.trim() === "v1") v1 = v?.trim();
+// Função auxiliar para validar itens
+function validarItens(itens) {
+  if (!itens || !Array.isArray(itens) || itens.length === 0) return false;
+  for (const item of itens) {
+    if (!item.nome || !item.preco || isNaN(item.preco) || item.preco <= 0) return false;
+    if (item.quantidade && (isNaN(item.quantidade) || item.quantidade <= 0)) return false;
   }
-  if (!ts || !v1) return false;
-
-  // String que deve ser assinada
-  const manifest = `id:${paymentId};request-id:${xRequestId};ts:${ts};`;
-
-  const calc = crypto
-    .createHmac("sha256", MP_WEBHOOK_SECRET)
-    .update(manifest)
-    .digest("hex");
-
-  return crypto.timingSafeEqual(Buffer.from(calc), Buffer.from(v1));
+  return true;
 }
 
-// Rota de Webhook
 router.post("/", async (req, res) => {
   try {
-    const paymentId =
-      req.query["data.id"] ||
-      req.query.id ||
-      req.body?.data?.id ||
-      req.body?.id;
+    const { itens, orderId, email } = req.body;
 
-    const xSignature = req.headers["x-signature"];
-    const xRequestId = req.headers["x-request-id"];
-
-    // 1) valida assinatura
-    const ok = verifySignature(xSignature, xRequestId, paymentId);
-    if (!ok) {
-      console.warn("⚠️ Webhook MP: assinatura inválida", { paymentId });
-      return res.sendStatus(401);
+    // Validação básica
+    if (!validarItens(itens)) {
+      return res.status(400).json({ error: "Itens inválidos" });
+    }
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ error: "Email inválido" });
     }
 
-    // 2) busca o pagamento
-    if (!paymentId) return res.sendStatus(200);
+    // Calcula valor total
+    const amount = Number(
+      itens.reduce(
+        (total, item) => total + Number(item.preco) * Number(item.quantidade || 1),
+        0
+      ).toFixed(2)
+    );
 
-    const payment = await mercadopago.payment.findById(paymentId);
+    if (amount <= 0) {
+      return res.status(400).json({ error: "Valor total inválido" });
+    }
 
-    const mpStatus = payment.body.status; // "approved", "pending", "cancelled", "rejected"...
-    const externalRef = payment.body.external_reference;
+    // Cria referência externa para vincular ao pedido
+    const externalRef = String(orderId || Date.now());
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    // 👉 Aqui você atualiza seu pedido no banco
-    // Exemplo:
-    // await Pedido.updateOne({ orderId: externalRef }, { status: mpStatus });
+    // Prepara dados do pagamento Pix
+    const paymentData = {
+      transaction_amount: amount,
+      description: "Compra na Yane Moda & Bags",
+      payment_method_id: "pix",
+      date_of_expiration: expiresAt,
+      external_reference: externalRef,
+      notification_url: `${process.env.APP_URL}/api/mp/webhook`,
+      payer: { email },
+    };
 
-    console.log("✅ Pagamento atualizado", { paymentId, externalRef, mpStatus });
+    console.log("paymentData enviado:", paymentData);
 
-    return res.sendStatus(200);
+    // Cria pagamento no Mercado Pago
+    const result = await mercadopago.payment.create(paymentData);
+
+    const data = result.body;
+    const tx = data.point_of_interaction?.transaction_data || {};
+
+    // 👉 Cria pedido no banco
+    const novoPedido = new Pedido({
+      orderId: externalRef,
+      itens,
+      email,
+      status: data.status || "pending",
+      paymentId: data.id,
+    });
+    await novoPedido.save();
+
+    // Resposta para o front-end
+    res.json({
+      orderId: data.id,
+      amount,
+      expiresAt,
+      pix_qr_base64: tx.qr_code_base64 || null,
+      pix_copia_cola: tx.qr_code || null,
+      ticket_url: tx.ticket_url || null,
+      status: data.status,
+    });
+
   } catch (e) {
-    console.error("❌ Erro no webhook MP:", e?.message || e);
-    return res.sendStatus(500);
+    console.error("❌ Erro ao criar pagamento Pix:", e);
+
+    res.status(500).json({
+      error: "Falha ao criar pagamento Pix",
+      detalhes: e.cause || e.message || e
+    });
   }
 });
 
