@@ -1,23 +1,24 @@
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
 const MercadoPago = require("mercadopago");
 const Pedido = require("../models/Pedido");
 
 const router = express.Router();
 
 // Inicializa Mercado Pago com token correto
-const mp = new MercadoPago(
+MercadoPago.configurations.setAccessToken(
   process.env.NODE_ENV !== "production"
-    ? process.env.MP_ACCESS_TOKEN_SANDBOX
-    : process.env.MP_ACCESS_TOKEN
+    ? process.env.MP_ACCESS_TOKEN_SANDBOX // Sandbox, caso queira testar
+    : process.env.MP_ACCESS_TOKEN         // Produção
 );
 
 // ----------------- Função auxiliar -----------------
 function validarItens(itens) {
   if (!itens || !Array.isArray(itens) || itens.length === 0) return false;
   for (const item of itens) {
-    if (!item.nome || !item.preco || isNaN(item.preco) || item.preco <= 0) return false;
-    if (item.quantidade && (isNaN(item.quantidade) || item.quantidade <= 0)) return false;
+    const preco = Number(item.preco);
+    const quantidade = Number(item.quantidade || 1);
+    if (!item.nome || isNaN(preco) || preco <= 0) return false;
+    if (isNaN(quantidade) || quantidade <= 0) return false;
   }
   return true;
 }
@@ -25,14 +26,17 @@ function validarItens(itens) {
 // ----------------- POST /api/checkout -----------------
 router.post("/", async (req, res) => {
   try {
-    // 🔹 Log do body do front-end
     console.log("📥 Body recebido do front-end:", req.body);
 
-    const { itens, orderId, email, firstName, lastName } = req.body;
+    let { itens, orderId, email, firstName, lastName } = req.body;
+
+    email = String(email || "").trim();
+    firstName = String(firstName || "").trim();
+    lastName = String(lastName || "").trim();
 
     // Valida campos
     if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
-    if (!email || typeof email !== "string") return res.status(400).json({ error: "Email inválido" });
+    if (!email) return res.status(400).json({ error: "Email inválido" });
     if (!firstName || !lastName) return res.status(400).json({ error: "Nome ou sobrenome inválido" });
 
     // Calcula valor total
@@ -42,11 +46,9 @@ router.post("/", async (req, res) => {
 
     if (amount <= 0) return res.status(400).json({ error: "Valor total inválido" });
 
-    // Referência externa do pedido
     const externalRef = String(orderId || Date.now());
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24h
 
-    // Dados do pagamento Pix
     const paymentData = {
       transaction_amount: amount,
       description: "Compra na Yane Moda & Bags",
@@ -55,21 +57,24 @@ router.post("/", async (req, res) => {
       external_reference: externalRef,
       notification_url: `${process.env.APP_URL}/api/mp/webhook`,
       payer: { email },
+      additional_info: {
+        items: itens.map((item, index) => ({
+          id: String(index + 1),
+          title: item.nome,
+          quantity: Number(item.quantidade || 1),
+          unit_price: Number(item.preco)
+        }))
+      }
     };
 
-    // 🔹 Log do pagamento
     console.log("💳 Dados enviados ao Mercado Pago:", paymentData);
 
-    // Verifica dados básicos antes de enviar
-    if (!paymentData.transaction_amount || !paymentData.payer.email || !paymentData.payment_method_id) {
-      console.error("❌ paymentData inválido:", paymentData);
-      return res.status(400).json({ error: "Dados de pagamento incompletos" });
-    }
-
-    // Cria pagamento
-    const result = await mp.payment.create(paymentData);
+    // Cria pagamento no Mercado Pago
+    const result = await MercadoPago.payment.create(paymentData);
     const data = result.body;
     const tx = data.point_of_interaction?.transaction_data || {};
+
+    console.log("✅ Resposta do Mercado Pago:", data);
 
     // Salva pedido no banco
     const novoPedido = new Pedido({
@@ -81,10 +86,9 @@ router.post("/", async (req, res) => {
       status: data.status || "pending",
       paymentId: data.id,
     });
-
     await novoPedido.save();
 
-    // Resposta para o front-end
+    // Resposta para front-end
     res.json({
       orderId: data.id,
       amount,
@@ -97,10 +101,7 @@ router.post("/", async (req, res) => {
 
   } catch (e) {
     console.error("❌ Erro ao criar pagamento Pix:", e);
-
-    if (e.response) {
-      console.error("🔹 Resposta do Mercado Pago:", e.response.body);
-    }
+    if (e.response) console.error("🔹 Resposta detalhada do Mercado Pago:", e.response.body);
 
     res.status(500).json({
       error: "Falha ao criar pagamento Pix",
