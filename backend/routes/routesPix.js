@@ -4,6 +4,7 @@ const Pedido = require("../models/Pedido");
 
 const router = express.Router();
 
+// Configura Mercado Pago
 mercadopago.configure({
   access_token:
     process.env.NODE_ENV !== "production"
@@ -11,6 +12,7 @@ mercadopago.configure({
       : process.env.MP_ACCESS_TOKEN,
 });
 
+// Função para validar itens do pedido
 function validarItens(itens) {
   if (!itens || !Array.isArray(itens) || itens.length === 0) return false;
   for (const item of itens) {
@@ -22,17 +24,23 @@ function validarItens(itens) {
   return true;
 }
 
-router.post("/pix", async (req, res) => {
+// Rota POST /api/pix
+router.post("/", async (req, res) => {
   try {
     const { itens, email } = req.body;
 
-    if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
+    // Validação dos itens
+    if (!validarItens(itens)) {
+      return res.status(400).json({ error: "Itens inválidos" });
+    }
 
+    // Calcula o valor total do pedido
     const transaction_amount = itens.reduce(
       (total, item) => total + Number(item.preco) * (Number(item.quantidade) || 1),
       0
     );
 
+    // Dados do pagamento PIX
     const pagamentoData = {
       transaction_amount,
       description: "Pedido Loja Online",
@@ -40,8 +48,10 @@ router.post("/pix", async (req, res) => {
       payer: { email },
     };
 
+    // Cria o pagamento no Mercado Pago
     const result = await mercadopago.payment.create(pagamentoData);
 
+    // Salva o pedido no banco
     const pedido = new Pedido({
       itens,
       email,
@@ -51,6 +61,7 @@ router.post("/pix", async (req, res) => {
 
     await pedido.save();
 
+    // Retorna dados do PIX para o front-end
     res.json({
       message: "Pix criado com sucesso ✅",
       id: result.body.id,
