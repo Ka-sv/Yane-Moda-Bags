@@ -4,7 +4,6 @@ const Pedido = require("../models/Pedido");
 
 const router = express.Router();
 
-// Inicializa Mercado Pago (sandbox em dev, produção em prod)
 mercadopago.configure({
   access_token:
     process.env.NODE_ENV !== "production"
@@ -12,7 +11,6 @@ mercadopago.configure({
       : process.env.MP_ACCESS_TOKEN,
 });
 
-// ----------------- Função auxiliar -----------------
 function validarItens(itens) {
   if (!itens || !Array.isArray(itens) || itens.length === 0) return false;
   for (const item of itens) {
@@ -24,23 +22,17 @@ function validarItens(itens) {
   return true;
 }
 
-// ----------------- ROTA PIX PRODUÇÃO -----------------
 router.post("/pix", async (req, res) => {
   try {
     const { itens, email } = req.body;
 
-    // Valida itens
-    if (!validarItens(itens)) {
-      return res.status(400).json({ error: "Itens inválidos" });
-    }
+    if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
 
-    // Calcula valor total do pedido
     const transaction_amount = itens.reduce(
       (total, item) => total + Number(item.preco) * (Number(item.quantidade) || 1),
       0
     );
 
-    // Cria pagamento PIX
     const pagamentoData = {
       transaction_amount,
       description: "Pedido Loja Online",
@@ -50,7 +42,6 @@ router.post("/pix", async (req, res) => {
 
     const result = await mercadopago.payment.create(pagamentoData);
 
-    // Salva pedido no banco
     const pedido = new Pedido({
       itens,
       email,
@@ -60,7 +51,6 @@ router.post("/pix", async (req, res) => {
 
     await pedido.save();
 
-    // Retorna QR Code para front-end
     res.json({
       message: "Pix criado com sucesso ✅",
       id: result.body.id,

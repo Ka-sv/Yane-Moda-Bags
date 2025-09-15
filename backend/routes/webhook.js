@@ -1,33 +1,39 @@
 const express = require("express");
+const Pedido = require("../models/Pedido");
+const mercadopago = require("mercadopago");
+
 const router = express.Router();
-const { processarEvento } = require("../controllers/pagamentoController");
 
 // Recebe notificações do Mercado Pago
-router.post("/mercadopago", async (req, res) => {
-  const event = req.body;
-  const signature = req.headers['x-mercadopago-signature'];
-
-  // 🔹 Validação da assinatura (opcional, mas recomendada em produção)
-  if (process.env.MP_WEBHOOK_SECRET && signature !== process.env.MP_WEBHOOK_SECRET) {
-    console.warn("⚠️ Webhook inválido ou assinatura incorreta", { signature });
-    return res.status(403).send("Forbidden");
-  }
-
+router.post("/webhook", async (req, res) => {
   try {
-    console.log("📥 Evento recebido do Mercado Pago:", event);
+    const { type, data } = req.body;
 
-    // 🔹 Processa o evento
-    await processarEvento(event);
+    // Só processa notificações de pagamento
+    if (type === "payment") {
+      const paymentId = data.id;
 
-    // 🔹 Confirma recebimento
-    console.log("✅ Evento processado com sucesso:", event.type);
-    res.status(200).send("OK");
+      // Pega status do pagamento no Mercado Pago
+      const payment = await mercadopago.payment.findById(paymentId);
+      const status = payment.body.status; // ex: "approved", "pending"
 
-  } catch (err) {
-    console.error("❌ Erro ao processar webhook:", err);
+      // Atualiza pedido no banco
+      let novoStatus = "pendente";
+      if (status === "approved") novoStatus = "aprovado";
+      else if (status === "rejected") novoStatus = "rejeitado";
 
-    // 🔹 Retorna erro interno
-    res.status(500).send("Erro interno");
+      await Pedido.findOneAndUpdate(
+        { payment_id: paymentId },
+        { status: novoStatus }
+      );
+
+      console.log(`✅ Pedido ${paymentId} atualizado para ${novoStatus}`);
+    }
+
+    res.sendStatus(200);
+  } catch (e) {
+    console.error("❌ Erro webhook:", e);
+    res.sendStatus(500);
   }
 });
 
