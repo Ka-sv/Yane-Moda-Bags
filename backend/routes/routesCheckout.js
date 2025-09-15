@@ -122,5 +122,10 @@ router.post("/teste-pix", async (req, res) => {
   }
 });
 
+router.post("/teste-pix", async (req, res) => {
+  return res.json({ message: "Rota de teste Pix funcionando ✅" });
+});
+
+
 
 module.exports = router;
