@@ -3,21 +3,20 @@ const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:5000"
   : "https://yane-moda-bags.onrender.com";
 
-// Setup Mercado Pago Device ID
-document.addEventListener("DOMContentLoaded", async () => {
+
+document.addEventListener("DOMContentLoaded", () => {
   try {
     const mp = new MercadoPago("APP_USR-47746633-729c-4927-8d40-62a66768ab77", { locale: "pt-BR" });
-    const device = await mp.device.create();
-    const deviceId = device?.id;
-    localStorage.setItem("mp_device_id", deviceId);
-    console.log("Device ID criado com sucesso:", deviceId);
-  } catch (err) {
-    console.error("Erro ao criar deviceId:", err);
-  }
 
-  initCarrinho();
-  carregarProdutos();
+    
+    localStorage.setItem("mp_device_id", null);
+    console.log("Device ID não é necessário no v2, valor setado como null.");
+
+  } catch (err) {
+    console.error("Erro ao inicializar Mercado Pago:", err);
+  }
 });
+
 
 // Carrinho DOM
 function ensureCartDOM() {
