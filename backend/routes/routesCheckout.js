@@ -24,7 +24,8 @@ function validarItens(itens) {
 
 router.post("/", async (req, res) => {
   try {
-    const { itens, orderId, email, firstName, lastName } = req.body;
+    const { itens, orderId, email, firstName, lastName, device_id } = req.body;
+
 
     // Validação básica
     if (!validarItens(itens)) {
@@ -65,15 +66,17 @@ router.post("/", async (req, res) => {
       },
       additional_info: {
         items: itens.map((item, index) => ({
-          id: String(index + 1),                     // ou item._id
+          id: String(index + 1),
           title: item.nome,
           description: item.descricao || "Produto",
-          category_id: item.categoria || "others",   // pode vir do front ou usar "others"
+          category_id: item.categoria || "others",
           quantity: Number(item.quantidade || 1),
           unit_price: Number(item.preco)
         }))
-      }
+      },
+      device_id 
     };
+    
 
     console.log("paymentData enviado:", paymentData);
 

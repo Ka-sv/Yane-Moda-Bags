@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yane Moda & Bags</title>
   <link rel="stylesheet" href="style.css">
+  
 </head>
 <body>
   <header class="header">
@@ -55,12 +56,23 @@
           <label for="checkout-email">E-mail:</label>
           <input type="email" id="checkout-email" placeholder="Digite seu e-mail" required>
         </div>
+        <div class="checkout-nome">
+          <label for="checkout-nome">Nome:</label>
+          <input type="text" id="checkout-nome" placeholder="Digite seu nome" required>
+        </div>
+        <div class="checkout-sobrenome">
+          <label for="checkout-sobrenome">Sobrenome:</label>
+          <input type="text" id="checkout-sobrenome" placeholder="Digite seu sobrenome" required>
+        </div>
       
         <div class="cart-actions">
           <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
           <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>
         </div>
       </div>
+      
+     
+      
       
     </div>
   </div>
@@ -82,7 +94,6 @@
       </div>
     </div>
 
-  <script src="/frontend/js/script.js"></script>
 
   <footer class="footer">
     <div class="footer-container">
@@ -101,5 +112,15 @@
     </div>
     <p class="footer-copy">&copy; 2025 Yane Moda & Bags. Todos os direitos reservados.</p>
   </footer>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+        const mp = new MercadoPago("APP_USR-47746633-729c-4927-8d40-62a66768ab77", { locale: "pt-BR" });
+        const deviceId = mp.device.create();
+        localStorage.setItem("mp_device_id", deviceId);
+</script>
+
+<script src="/frontend/js/script.js"></script>
+
+  
 </body>
 </html>

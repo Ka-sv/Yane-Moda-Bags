@@ -179,14 +179,33 @@ async function finalizarCompra() {
     preco: i.preco 
   }));
 
+  const firstName = document.getElementById("checkout-nome")?.value.trim();
+  const lastName = document.getElementById("checkout-sobrenome")?.value.trim();
+
+if (!firstName || !lastName) {
+  alert("Por favor, preencha nome e sobrenome.");
+  return;
+}
+
+  
+  const deviceId = localStorage.getItem("mp_device_id");
+
   try {
-    console.log("Enviando dados para o backend:", { itens, email });
+    console.log("Enviando dados para o backend:", { itens, email, deviceId });
 
     const res = await fetch(`${API_BASE_URL}/api/checkout`, {
       method: "POST",
       headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ itens, email })
+      body: JSON.stringify({ 
+        itens, 
+        email,
+        firstName,   
+        lastName,    
+        device_id: deviceId    
+      })
+      
     });
+    
     
     if (!res.ok) {
       const erroTexto = await res.text();
@@ -203,6 +222,7 @@ async function finalizarCompra() {
     alert("Não foi possível finalizar. Tente novamente. Veja o console para detalhes.");
   }
 }
+
  
  
 
