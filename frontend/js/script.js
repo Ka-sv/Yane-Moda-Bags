@@ -1,16 +1,25 @@
+// ------------------- Config -------------------
 let carrinho = [];
 const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:5000"
   : "https://yane-moda-bags.onrender.com";
 
+let produtosCarregados = [];
+
+// ------------------- DOMContentLoaded -------------------
+document.addEventListener("DOMContentLoaded", () => {
+  initCarrinho();
+  carregarProdutos();
+});
+
 // ------------------- Produtos -------------------
 const inputBusca = document.getElementById("busca-produtos");
-let produtosCarregados = [];
 
 async function carregarProdutos() {
   try {
     const response = await fetch(`${API_BASE_URL}/api/produtos`);
     if (!response.ok) throw new Error("Erro ao carregar produtos");
+
     produtosCarregados = await response.json();
     mostrarProdutos(produtosCarregados);
   } catch (e) {
@@ -21,11 +30,14 @@ async function carregarProdutos() {
 function mostrarProdutos(produtos) {
   const lista = document.getElementById("lista-produtos");
   if (!lista) return;
+
   lista.innerHTML = "";
+
   if (!produtos.length) {
     lista.innerHTML = "<p>Nenhum produto encontrado.</p>";
     return;
   }
+
   produtos.forEach(p => {
     const div = document.createElement("div");
     div.classList.add("card");
@@ -34,7 +46,8 @@ function mostrarProdutos(produtos) {
       <h3>${p.nome}</h3>
       <p>${p.descricao || ''}</p>
       <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
-      <button type="button" onclick="adicionarAoCarrinho('${p._id}', '${(p.nome||'').replace(/'/g,"\\'")}', ${Number(p.preco||0)})">
+      <button type="button"
+        onclick="adicionarAoCarrinho('${p._id}', '${(p.nome||'').replace(/'/g,"\\'")}', ${Number(p.preco||0)})">
         Adicionar ao carrinho
       </button>
     `;
@@ -42,6 +55,7 @@ function mostrarProdutos(produtos) {
   });
 }
 
+// Busca dinâmica
 if (inputBusca) {
   inputBusca.addEventListener("input", () => {
     const termo = inputBusca.value.toLowerCase();
@@ -70,6 +84,7 @@ function initCarrinho() {
   const { modal, lista, total, limparBtn, finalizarBtn, openCart, closeCart } = ensureCartDOM();
   if (!modal || !lista || !total) return;
 
+  // Abrir/fechar modal
   if (openCart) openCart.addEventListener("click", e => {
     e.preventDefault();
     modal.classList.add("show");
@@ -91,6 +106,7 @@ function initCarrinho() {
   if (limparBtn) limparBtn.addEventListener("click", limparCarrinho);
   if (finalizarBtn) finalizarBtn.addEventListener("click", finalizarCompra);
 
+  // Aumentar/diminuir quantidade
   lista.addEventListener("click", e => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
@@ -164,7 +180,7 @@ function atualizarCarrinho() {
   total.textContent = `Total: R$ ${soma.toFixed(2)}`;
 }
 
-// ------------------- Checkout e Pix -------------------
+// ------------------- Checkout / Pix -------------------
 async function finalizarCompra() {
   if (carrinho.length === 0) {
     alert("Seu carrinho está vazio.");
@@ -188,19 +204,23 @@ async function finalizarCompra() {
   }));
 
   try {
+    // --- LOG PARA DEBUG ---
+    console.log("Body recebido do front-end:", { itens, email, firstName, lastName });
+
     const res = await fetch(`${API_BASE_URL}/api/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itens, email, firstName, lastName })
     });
 
-    if (!res.ok) {
-      const erroTexto = await res.text();
-      console.error("Erro no backend:", erroTexto);
-      throw new Error("Falha ao iniciar checkout.");
-    }
+    const texto = await res.text();
+    console.log("Resposta do backend:", texto);
 
-    const data = await res.json();
+    if (!res.ok) throw new Error("Falha ao iniciar checkout.");
+
+    const data = JSON.parse(texto);
+    console.log("Objeto enviado ao Mercado Pago:", data);
+
     abrirPixModal(data);
     iniciarPollingStatus(data.orderId);
 
@@ -210,8 +230,67 @@ async function finalizarCompra() {
   }
 }
 
+// ------------------- Modal Pix -------------------
+function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
+  const modal = document.getElementById("pix-modal");
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
 
-document.addEventListener("DOMContentLoaded", () => {
-  initCarrinho();
-  carregarProdutos();
-});
+  document.getElementById("pix-total").textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
+  document.getElementById("pix-qr").src = `data:image/png;base64,${pix_qr_base64}`;
+  const copia = document.getElementById("pix-copia-cola");
+  copia.value = pix_copia_cola;
+
+  document.getElementById("copy-pix").onclick = async () => {
+    await navigator.clipboard.writeText(copia.value);
+    document.getElementById("pix-status").textContent = "Código Pix copiado!";
+  };
+
+  document.getElementById("close-pix").onclick = () => fecharPixModal();
+  iniciarTimer(15 * 60);
+}
+
+function fecharPixModal() {
+  const modal = document.getElementById("pix-modal");
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+// ------------------- Polling e Timer -------------------
+let pollingInterval = null;
+function iniciarPollingStatus(orderId) {
+  const statusEl = document.getElementById("pix-status");
+  if (pollingInterval) clearInterval(pollingInterval);
+
+  pollingInterval = setInterval(async () => {
+    try {
+      const r = await fetch(`${API_BASE_URL}/orders/${orderId}/status`);
+      const { status } = await r.json();
+
+      statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
+                             status === "paid" ? "Pagamento confirmado! 🎉" :
+                             "Cobrança expirada. Gere outra.";
+
+      if (status === "paid" || status === "expired") {
+        clearInterval(pollingInterval);
+        if (status === "paid") {
+          limparCarrinho();
+          window.location.href = "/obrigado.html";
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, 4000);
+}
+
+function iniciarTimer(totalSegundos) {
+  const el = document.getElementById("pix-timer");
+  let s = totalSegundos;
+  const id = setInterval(() => {
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const ss = (s % 60).toString().padStart(2, "0");
+    el.textContent = `Expira em ${m}:${ss}`;
+    if (--s < 0) clearInterval(id);
+  }, 1000);
+}

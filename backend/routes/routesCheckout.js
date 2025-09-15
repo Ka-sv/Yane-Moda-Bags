@@ -1,5 +1,4 @@
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
 const MercadoPago = require("mercadopago");
 const Pedido = require("../models/Pedido");
 
@@ -27,6 +26,7 @@ router.post("/", async (req, res) => {
   try {
     const { itens, orderId, email, firstName, lastName } = req.body;
 
+    // Validações
     if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
     if (!email) return res.status(400).json({ error: "Email inválido" });
 
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
     if (amount <= 0) return res.status(400).json({ error: "Valor total inválido" });
 
     const externalRef = String(orderId || Date.now());
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24h
 
     const paymentData = {
       transaction_amount: amount,
@@ -77,7 +77,7 @@ router.post("/", async (req, res) => {
     await novoPedido.save();
 
     res.json({
-      orderId: data.id,
+      orderId: externalRef,
       amount,
       expiresAt,
       pix_qr_base64: tx.qr_code_base64 || null,
