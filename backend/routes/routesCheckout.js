@@ -1,11 +1,11 @@
 const express = require("express");
-const MercadoPago = require("mercadopago");
+const mercadopago = require("mercadopago");
 const Pedido = require("../models/Pedido");
 
 const router = express.Router();
 
 // Inicializa Mercado Pago
-MercadoPago.configurations.setAccessToken(
+mercadopago.configurations.setAccessToken(
   process.env.NODE_ENV !== "production"
     ? process.env.MP_ACCESS_TOKEN_SANDBOX
     : process.env.MP_ACCESS_TOKEN
@@ -29,7 +29,6 @@ router.post("/", async (req, res) => {
     if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
     if (!email) return res.status(400).json({ error: "Email inválido" });
 
-    // Calcula valor total
     const amount = Number(
       itens.reduce((total, i) => total + Number(i.preco) * Number(i.quantidade || 1), 0).toFixed(2)
     );
@@ -37,7 +36,6 @@ router.post("/", async (req, res) => {
     const externalRef = String(orderId || Date.now());
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    // Cria paymentData
     const paymentData = {
       transaction_amount: amount,
       description: "Compra na Yane Moda & Bags",
@@ -51,7 +49,7 @@ router.post("/", async (req, res) => {
     console.log("paymentData enviado:", paymentData);
 
     // Cria pagamento no Mercado Pago
-    const result = await MercadoPago.payment.create(paymentData);
+    const result = await mercadopago.payment.create(paymentData);
     const data = result.body;
 
     console.log("Resposta do Mercado Pago:", data);
