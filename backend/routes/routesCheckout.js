@@ -1,15 +1,16 @@
 const express = require("express");
-const MercadoPago = require("mercadopago");
+const mercadopago = require("mercadopago");
 const Pedido = require("../models/Pedido");
 
 const router = express.Router();
 
-// Inicializa Mercado Pago com token correto
-MercadoPago.configurations.setAccessToken(
-  process.env.NODE_ENV !== "production"
-    ? process.env.MP_ACCESS_TOKEN_SANDBOX // Sandbox, caso queira testar
-    : process.env.MP_ACCESS_TOKEN         // Produção
-);
+// Inicializa Mercado Pago (sandbox em dev, produção em prod)
+mercadopago.configure({
+  access_token:
+    process.env.NODE_ENV !== "production"
+      ? process.env.MP_ACCESS_TOKEN_SANDBOX
+      : process.env.MP_ACCESS_TOKEN,
+});
 
 // ----------------- Função auxiliar -----------------
 function validarItens(itens) {
@@ -34,7 +35,7 @@ router.post("/", async (req, res) => {
     firstName = String(firstName || "").trim();
     lastName = String(lastName || "").trim();
 
-    // Valida campos
+    // Validações
     if (!validarItens(itens)) return res.status(400).json({ error: "Itens inválidos" });
     if (!email) return res.status(400).json({ error: "Email inválido" });
     if (!firstName || !lastName) return res.status(400).json({ error: "Nome ou sobrenome inválido" });
@@ -43,7 +44,6 @@ router.post("/", async (req, res) => {
     const amount = Number(
       itens.reduce((total, item) => total + Number(item.preco) * Number(item.quantidade || 1), 0).toFixed(2)
     );
-
     if (amount <= 0) return res.status(400).json({ error: "Valor total inválido" });
 
     const externalRef = String(orderId || Date.now());
@@ -56,27 +56,21 @@ router.post("/", async (req, res) => {
       date_of_expiration: expiresAt,
       external_reference: externalRef,
       notification_url: `${process.env.APP_URL}/api/mp/webhook`,
-      payer: { email },
-      additional_info: {
-        items: itens.map((item, index) => ({
-          id: String(index + 1),
-          title: item.nome,
-          quantity: Number(item.quantidade || 1),
-          unit_price: Number(item.preco)
-        }))
-      }
+      payer: {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+      },
     };
 
     console.log("💳 Dados enviados ao Mercado Pago:", paymentData);
 
-    // Cria pagamento no Mercado Pago
-    const result = await MercadoPago.payment.create(paymentData);
+    const result = await mercadopago.payment.create(paymentData);
     const data = result.body;
     const tx = data.point_of_interaction?.transaction_data || {};
 
     console.log("✅ Resposta do Mercado Pago:", data);
 
-    // Salva pedido no banco
     const novoPedido = new Pedido({
       orderId: externalRef,
       itens,
@@ -88,7 +82,6 @@ router.post("/", async (req, res) => {
     });
     await novoPedido.save();
 
-    // Resposta para front-end
     res.json({
       orderId: data.id,
       amount,
@@ -101,11 +94,12 @@ router.post("/", async (req, res) => {
 
   } catch (e) {
     console.error("❌ Erro ao criar pagamento Pix:", e);
-    if (e.response) console.error("🔹 Resposta detalhada do Mercado Pago:", e.response.body);
-
+    if (e.response?.body) {
+      console.error("🔹 Erro detalhado:", JSON.stringify(e.response.body, null, 2));
+    }
     res.status(500).json({
       error: "Falha ao criar pagamento Pix",
-      detalhes: e.response?.body || e.cause || e.message || e
+      detalhes: e.response?.body || e.message || e,
     });
   }
 });
