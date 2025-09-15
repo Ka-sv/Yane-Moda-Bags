@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-const app = express(); // 🔹 app precisa vir antes do app.use
+const app = express();
 
 // Configuração de CORS
 const allowedOrigins = [
@@ -36,6 +36,11 @@ app.use("/api/checkout", checkoutRoutes);
 const webhookRoutesMp = require("./routes/routesWebhookMp");
 app.use("/api/mp/webhook", webhookRoutesMp);
 
+// Rota PIX
+const pixRoutes = require("./routes/routesPix");
+app.use("/api/pix", pixRoutes); // ✅ rota registrada antes do listen
+
+// Rota de teste status
 app.get("/orders/:id/status", async (req, res) => {
   try {
     res.json({ status: "pending" });
@@ -52,6 +57,3 @@ mongoose.connect(process.env.MONGO_URI)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
-
-const pixRoutes = require("./routes/routesPix");
-app.use("/api/pix", pixRoutes);
