@@ -7,18 +7,20 @@ const app = express();
 
 // ------------------- Configuração de CORS -------------------
 const allowedOrigins = [
-  "https://yane-moda-bags.vercel.app", // produção frontend
-  "https://yane-moda-bags-git-main-kaiques-projects-3b2bc89a.vercel.app", // branch preview Vercel
-  "http://127.0.0.1:5500", // frontend local
-  "http://localhost:5000"  // backend local
+  "https://yane-moda-bags.vercel.app", // produção
+  "https://yane-moda-bags-git-main-kaiques-projects-3b2bc89a.vercel.app", // branch preview
+  "http://127.0.0.1:5500", 
+  "http://localhost:5000"
 ];
+
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // permitir Postman ou fetch sem origin
+    if (!origin) return callback(null, true); // Postman ou fetch sem origin
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn("CORS não permitido para:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   }
