@@ -5,39 +5,30 @@ const cors = require("cors");
 
 const app = express();
 
-// ------------------- Configuração de CORS -------------------
+
 const allowedOrigins = [
-  "https://yane-moda-bags.vercel.app", // produção
+  "https://yane-moda-bags.vercel.app",
   "http://127.0.0.1:5500",
   "http://localhost:5000"
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    console.log("🔍 Origin recebido:", origin);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log("🔍 Origin recebido:", origin);
 
-    if (!origin) return callback(null, true);
+  if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
 
-    const allowedOrigins = [
-      "https://yane-moda-bags.vercel.app",
-      "http://127.0.0.1:5500",
-      "http://localhost:5000"
-    ];
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+  next();
+});
 
-    // Permitir qualquer domínio do Vercel (inclui previews)
-    if (/\.vercel\.app$/.test(origin)) {
-      return callback(null, true);
-    }
-
-    console.warn("❌ CORS não permitido para:", origin);
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true
-}));
 
 
 
