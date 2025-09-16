@@ -37,8 +37,8 @@ const webhookRoutesMp = require("./routes/routesWebhookMp");
 app.use("/api/mp/webhook", webhookRoutesMp);
 
 // Rota PIX
-const pixRoutes = require("./routes/routesPix");
-app.use("/api/pix", pixRoutes); // ✅ rota registrada antes do listen
+// const pixRoutes = require("./routes/routesPix");
+// app.use("/api/pix", pixRoutes); 
 
 // Rota de teste status
 app.get("/orders/:id/status", async (req, res) => {
