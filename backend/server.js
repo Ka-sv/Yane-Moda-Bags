@@ -13,20 +13,30 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     console.log("🔍 Origin recebido:", origin);
 
     if (!origin) return callback(null, true);
 
-    // Permitir o domínio principal
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    const allowedOrigins = [
+      "https://yane-moda-bags.vercel.app",
+      "http://127.0.0.1:5500",
+      "http://localhost:5000"
+    ];
 
-    // Permitir qualquer subdomínio do Vercel (ex: previews)
-    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Permitir qualquer domínio do Vercel (inclui previews)
+    if (/\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
 
     console.warn("❌ CORS não permitido para:", origin);
     return callback(new Error("Not allowed by CORS"));
-  }
+  },
+  credentials: true
 }));
 
 
