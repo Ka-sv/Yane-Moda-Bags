@@ -207,11 +207,12 @@ async function finalizarCompra() {
     // --- LOG PARA DEBUG ---
     console.log("Body recebido do front-end:", { itens, email, firstName, lastName });
 
-    const res = await fetch(`${API_BASE_URL}/api/checkout`, {
+    const res = await fetch(`${API_BASE_URL}/api/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itens, email, firstName, lastName })
+      body: JSON.stringify({ itens, email })
     });
+    
 
     const texto = await res.text();
     console.log("Resposta do backend:", texto);
@@ -219,7 +220,8 @@ async function finalizarCompra() {
     if (!res.ok) throw new Error("Falha ao iniciar checkout.");
 
     const data = JSON.parse(texto);
-    console.log("Objeto enviado ao Mercado Pago:", data);
+    console.log("Resposta do backend Pix:", data);
+
 
     abrirPixModal(data);
     iniciarPollingStatus(data.orderId);

@@ -57,3 +57,17 @@ mongoose.connect(process.env.MONGO_URI)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+
+const Pedido = require("./models/Pedido");
+
+app.get("/orders/:id/status", async (req, res) => {
+  try {
+    const pedido = await Pedido.findOne({ external_reference: req.params.id });
+    if (!pedido) return res.status(404).json({ error: "Pedido não encontrado" });
+
+    res.json({ status: pedido.status });
+  } catch (e) {
+    console.error("Erro ao consultar status:", e);
+    res.status(500).json({ error: "Falha ao consultar status" });
+  }
+});

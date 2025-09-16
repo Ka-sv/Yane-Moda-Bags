@@ -1,78 +1,58 @@
 const express = require("express");
-const mercadopago = require("mercadopago");
+const { Payment } = require("mercadopago");
+const mpClient = require("../config/mpClient");
 const Pedido = require("../models/Pedido");
+const { v4: uuidv4 } = require("uuid");
 
 const router = express.Router();
 
-// Configura Mercado Pago
-mercadopago.configure({
-  access_token:
-    process.env.NODE_ENV !== "production"
-      ? process.env.MP_ACCESS_TOKEN_SANDBOX
-      : process.env.MP_ACCESS_TOKEN,
-});
-
-// Função para validar itens do pedido
-function validarItens(itens) {
-  if (!itens || !Array.isArray(itens) || itens.length === 0) return false;
-  for (const item of itens) {
-    const preco = Number(item.preco);
-    const quantidade = Number(item.quantidade || 1);
-    if (!item.nome || isNaN(preco) || preco <= 0) return false;
-    if (isNaN(quantidade) || quantidade <= 0) return false;
-  }
-  return true;
-}
-
-// Rota POST /api/pix
+// POST /api/pix
 router.post("/", async (req, res) => {
   try {
     const { itens, email } = req.body;
-
-    // Validação dos itens
-    if (!validarItens(itens)) {
+    if (!itens || !Array.isArray(itens) || itens.length === 0) {
       return res.status(400).json({ error: "Itens inválidos" });
     }
 
-    // Calcula o valor total do pedido
     const transaction_amount = itens.reduce(
       (total, item) => total + Number(item.preco) * (Number(item.quantidade) || 1),
       0
     );
 
-    // Dados do pagamento PIX
+    const external_reference = uuidv4();
+
     const pagamentoData = {
       transaction_amount,
       description: "Pedido Loja Online",
       payment_method_id: "pix",
       payer: { email },
+      external_reference,
+      notification_url: `${process.env.BASE_URL}/api/mp/webhook`,
+      
     };
 
-    // Cria o pagamento no Mercado Pago
-    const result = await mercadopago.payment.create(pagamentoData);
+    const payment = await new Payment(mpClient).create({ body: pagamentoData });
 
-    // Salva o pedido no banco
     const pedido = new Pedido({
       itens,
       email,
       status: "pendente",
-      payment_id: result.body.id,
+      payment_id: payment.id,
+      external_reference,
     });
-
     await pedido.save();
 
-    // Retorna dados do PIX para o front-end
     res.json({
       message: "Pix criado com sucesso ✅",
-      id: result.body.id,
-      qr_code: result.body.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64: result.body.point_of_interaction.transaction_data.qr_code_base64,
+      id: payment.id,
+      qr_code: payment.point_of_interaction.transaction_data.qr_code,
+      qr_code_base64: payment.point_of_interaction.transaction_data.qr_code_base64,
     });
   } catch (e) {
-    console.error("❌ Erro ao criar Pix:", e.response?.body || e);
+    console.error("❌ Erro ao criar Pix:", e);
     res.status(500).json({
       error: "Falha ao criar Pix",
-      detalhes: e.response?.body || e.message,
+      detalhes: e.message,
     });
   }
 });
