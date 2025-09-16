@@ -5,64 +5,63 @@ const cors = require("cors");
 
 const app = express();
 
-// Configuração de CORS
+// ------------------- Configuração de CORS -------------------
 const allowedOrigins = [
-  "https://yane-moda-bags.vercel.app",
+  "https://yane-moda-bags.vercel.app", // produção
   "http://127.0.0.1:5500",
-  "http://localhost:5500"
+  "http://localhost:5000"
 ];
 
 app.use(cors({
-  origin: "https://yane-moda-bags.vercel.app"
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // permite Postman ou requests sem origin
+    // permite domínios listados ou qualquer deploy do Vercel
+    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      callback(null, true);
+    } else {
+      console.warn("CORS não permitido para:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
 }));
-
 
 app.use(express.json());
 
-// Rotas de produtos
+// ------------------- Rotas -------------------
+// Produtos
 const produtoRoutes = require("./routes/routesProdutos");
 app.use("/api/produtos", produtoRoutes);
 
-// Rota de checkout
+// Checkout
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
 
-// Webhook do Mercado Pago
+// Webhook Mercado Pago
 const webhookRoutesMp = require("./routes/routesWebhookMp");
 app.use("/api/mp/webhook", webhookRoutesMp);
 
-// Rota PIX
+// PIX (descomente se quiser ativar)
 // const pixRoutes = require("./routes/routesPix");
-// app.use("/api/pix", pixRoutes); 
+// app.use("/api/pix", pixRoutes);
 
-// Rota de teste status
-app.get("/orders/:id/status", async (req, res) => {
-  try {
-    res.json({ status: "pending" });
-  } catch (e) {
-    console.error("Erro ao consultar status:", e);
-    res.status(500).json({ error: "Falha ao consultar status" });
-  }
-});
-
-// Conexão com MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB conectado!"))
-  .catch(err => console.error("Erro MongoDB:", err));
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
-
+// ------------------- Status pedido -------------------
 const Pedido = require("./models/Pedido");
-
 app.get("/orders/:id/status", async (req, res) => {
   try {
     const pedido = await Pedido.findOne({ external_reference: req.params.id });
     if (!pedido) return res.status(404).json({ error: "Pedido não encontrado" });
-
     res.json({ status: pedido.status });
   } catch (e) {
     console.error("Erro ao consultar status:", e);
     res.status(500).json({ error: "Falha ao consultar status" });
   }
 });
+
+// ------------------- Conexão MongoDB -------------------
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB conectado!"))
+  .catch(err => console.error("Erro MongoDB:", err));
+
+// ------------------- Servidor -------------------
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
