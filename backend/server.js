@@ -14,13 +14,18 @@ const allowedOrigins = [
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  console.log("🔍 Origin recebido:", origin);
 
-  if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+  if (
+    allowedOrigins.includes(origin) ||
+    /\.vercel\.app$/.test(origin) // qualquer subdomínio do vercel
+  ) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Vary", "Origin"); // 🔑 importante para o cache do Render
   }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
