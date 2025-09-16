@@ -5,12 +5,12 @@ const Pedido = require("../models/Pedido");
 const router = express.Router();
 
 // Inicializa Mercado Pago (sandbox em dev, produção em prod)
-mercadopago.configure({
-  access_token:
-    process.env.NODE_ENV !== "production"
-      ? process.env.MP_ACCESS_TOKEN_SANDBOX
-      : process.env.MP_ACCESS_TOKEN,
-});
+const accessToken =
+  process.env.NODE_ENV !== "production"
+    ? process.env.MP_ACCESS_TOKEN_SANDBOX
+    : process.env.MP_ACCESS_TOKEN;
+
+mercadopago.configurations.setAccessToken(accessToken);
 
 // ----------------- Função auxiliar -----------------
 function validarItens(itens) {
