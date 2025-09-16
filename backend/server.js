@@ -14,16 +14,21 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); 
-    
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    
-    if (origin.endsWith(".vercel.app")) return callback(null, true);
+    console.log("🔍 Origin recebido:", origin);
 
-    console.warn("CORS não permitido para:", origin);
+    if (!origin) return callback(null, true);
+
+    // Permitir o domínio principal
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Permitir qualquer subdomínio do Vercel (ex: previews)
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+
+    console.warn("❌ CORS não permitido para:", origin);
     return callback(new Error("Not allowed by CORS"));
   }
 }));
+
 
 
 
