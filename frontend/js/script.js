@@ -1,8 +1,9 @@
 // ------------------- Config -------------------
 let carrinho = [];
 const API_BASE_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:5000" // teste local
-  : "https://yane-moda-bags.vercel.app"; // sem /api duplicado
+  ? "http://localhost:5000" 
+  : "https://yane-moda-bags.onrender.com"; 
+
 
 let produtosCarregados = [];
 
