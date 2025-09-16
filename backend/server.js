@@ -14,8 +14,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Postman, fetch sem origin
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    if (!origin) return callback(null, true); 
+    if (
+      allowedOrigins.includes(origin) || 
+      origin.endsWith(".vercel.app")
+    ) {
       callback(null, true);
     } else {
       console.warn("CORS não permitido para:", origin);
@@ -23,6 +26,7 @@ app.use(cors({
     }
   }
 }));
+
 
 app.use(express.json());
 
