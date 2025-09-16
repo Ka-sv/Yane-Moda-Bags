@@ -14,16 +14,18 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // permite Postman ou requests sem origin
-    // permite domínios listados ou qualquer deploy do Vercel
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      callback(null, true);
-    } else {
-      console.warn("CORS não permitido para:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
+    if (!origin) return callback(null, true); 
+    
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    console.warn("CORS não permitido para:", origin);
+    return callback(new Error("Not allowed by CORS"));
   }
 }));
+
+
 
 app.use(express.json());
 
