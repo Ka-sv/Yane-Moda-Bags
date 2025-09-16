@@ -5,22 +5,22 @@ const cors = require("cors");
 
 const app = express();
 
-
 const allowedOrigins = [
   "https://yane-moda-bags.vercel.app",
   "http://127.0.0.1:5500",
   "http://localhost:5000"
 ];
 
+// ------------------- CORS -------------------
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   if (
     allowedOrigins.includes(origin) ||
-    /\.vercel\.app$/.test(origin) // qualquer subdomínio do vercel
+    /\.vercel\.app$/.test(origin) // qualquer subdomínio do Vercel
   ) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin"); // 🔑 importante para o cache do Render
+    res.setHeader("Vary", "Origin"); // 🔑 importante para cache do Render
   }
 
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
@@ -34,10 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
-
-
-
-
+// Permite JSON
 app.use(express.json());
 
 // ------------------- Rotas -------------------
@@ -49,13 +46,13 @@ app.use("/api/produtos", produtoRoutes);
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
 
+// PIX (ativado)
+const pixRoutes = require("./routes/routesCheckout"); // usando o mesmo routesCheckout.js
+app.use("/api/pix", pixRoutes);
+
 // Webhook Mercado Pago
 const webhookRoutesMp = require("./routes/routesWebhookMp");
 app.use("/api/mp/webhook", webhookRoutesMp);
-
-// PIX (descomente se quiser ativar)
-// const pixRoutes = require("./routes/routesPix");
-// app.use("/api/pix", pixRoutes);
 
 // ------------------- Status pedido -------------------
 const Pedido = require("./models/Pedido");
