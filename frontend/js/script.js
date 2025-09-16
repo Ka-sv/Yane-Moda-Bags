@@ -2,7 +2,7 @@
 let carrinho = [];
 const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:5000" // teste local
-  : "https://yane-moda-bags.vercel.app/api"; 
+  : "https://yane-moda-bags.vercel.app"; // sem /api duplicado
 
 let produtosCarregados = [];
 
@@ -204,15 +204,13 @@ async function finalizarCompra() {
   }));
 
   try {
-    // --- LOG PARA DEBUG ---
     console.log("Body recebido do front-end:", { itens, email, firstName, lastName });
 
     const res = await fetch(`${API_BASE_URL}/api/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itens, email })
+      body: JSON.stringify({ itens, email, firstName, lastName })
     });
-    
 
     const texto = await res.text();
     console.log("Resposta do backend:", texto);
@@ -221,7 +219,6 @@ async function finalizarCompra() {
 
     const data = JSON.parse(texto);
     console.log("Resposta do backend Pix:", data);
-
 
     abrirPixModal(data);
     iniciarPollingStatus(data.orderId);
