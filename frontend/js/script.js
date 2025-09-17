@@ -207,7 +207,7 @@ async function finalizarCompra() {
   try {
     console.log("Body recebido do front-end:", { itens, email, firstName, lastName });
 
-    const res = await fetch(`${API_BASE_URL}/api/pix`, {
+    const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itens, email, firstName, lastName })

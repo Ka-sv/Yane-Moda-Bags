@@ -46,9 +46,6 @@ app.use("/api/produtos", produtoRoutes);
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
 
-// PIX (ativado)
-const pixRoutes = require("./routes/routesCheckout"); // usando o mesmo routesCheckout.js
-app.use("/api/pix", pixRoutes);
 
 // Webhook Mercado Pago
 const webhookRoutesMp = require("./routes/routesWebhookMp");
