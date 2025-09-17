@@ -36,7 +36,8 @@ router.post("/pix", async (req, res) => {
     const { itens, email, firstName, lastName } = req.body;
 
     
-    const total = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+    const total = itens.reduce((acc, item) => acc + Number(item.preco) * Number(item.quantidade), 0);
+
 
     const payment = new Payment(client);
 
