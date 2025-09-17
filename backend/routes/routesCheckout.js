@@ -53,17 +53,27 @@ router.post("/pix", async (req, res) => {
         },
       },
     });
+    const pedido = new Pedido({
+      itens,
+      email,
+      firstName,
+      lastName,
+      total,
+      status: "pendente",        
+      payment_id: response.body.id
+    });
 
     res.json({
-      orderId: response.id,
-      amount: response.transaction_amount,
-      pix_qr_base64: response.point_of_interaction.transaction_data.qr_code_base64,
-      pix_copia_cola: response.point_of_interaction.transaction_data.qr_code,
+      message: "Pix criado com sucesso",
+      orderId: pedido._id,   
+      qr_code: response.body.point_of_interaction.transaction_data.qr_code,
+      qr_code_base64: response.body.point_of_interaction.transaction_data.qr_code_base64
     });
   } catch (error) {
     console.error("Erro ao criar pagamento Pix:", error);
     res.status(500).json({ error: "Falha ao criar pagamento Pix" });
   }
 });
+await pedido.save();
 
 module.exports = router;

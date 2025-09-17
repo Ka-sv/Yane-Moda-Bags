@@ -42,6 +42,10 @@ app.use(express.json());
 const produtoRoutes = require("./routes/routesProdutos");
 app.use("/api/produtos", produtoRoutes);
 
+const pedidosRoutes = require("./routes/routesPedidos");
+app.use("/api/pedidos", pedidosRoutes);
+
+
 // Checkout
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
