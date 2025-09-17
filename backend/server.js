@@ -49,6 +49,7 @@ app.use("/api/pedidos", pedidosRoutes);
 // Checkout
 const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
+console.log("✅ Rotas de pedidos ativas em /api/pedidos");
 
 
 // Webhook Mercado Pago
