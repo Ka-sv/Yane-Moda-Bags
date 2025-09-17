@@ -1,22 +1,27 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const PedidoSchema = new mongoose.Schema({
-  orderId: { type: String, required: true, unique: true }, 
-  itens: [
-    {
-      nome: { type: String, required: true },      
-      preco: { type: Number, required: true },      
-      quantidade: { type: Number, default: 1 },     
-    }
-  ],
-  email: { type: String, required: true },         
-  status: {
-    type: String,
-    enum: ["pending", "approved", "rejected", "cancelled"],
-    default: "pending",
+const PedidoSchema = new mongoose.Schema(
+  {
+    itens: [
+      {
+        nome: { type: String, required: true },
+        preco: { type: Number, required: true },
+        quantidade: { type: Number, default: 1 },
+      },
+    ],
+    email: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
+    total: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "cancelled"],
+      default: "pending",
+    },
+    payment_id: { type: String },
   },
-  paymentId: { type: String },                      
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true }
+); // createdAt e updatedAt automáticos
 
-module.exports = mongoose.model("Pedido", PedidoSchema);
+// 👇 se já existir, reutiliza; senão cria
+export default mongoose.models.Pedido || mongoose.model("Pedido", PedidoSchema);

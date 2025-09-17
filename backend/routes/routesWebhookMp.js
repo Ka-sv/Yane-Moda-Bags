@@ -1,5 +1,7 @@
-const express = require("express");
-const { processarEvento } = require("../services/processarEvento");
+// routes/routesWebhookMp.js
+import express from "express";
+import processarEvento from "../services/processarEvento.js";
+// import { processarEvento } from "../services/processarEvento.js"; // 🔑 lembre-se do .js no import local
 
 const router = express.Router();
 
@@ -14,4 +16,5 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+// 🔑 Export para ES Modules
+export default router;

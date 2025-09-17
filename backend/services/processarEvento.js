@@ -1,6 +1,7 @@
-const { Payment } = require("mercadopago");
-const mpClient = require("../config/mpClient");
-const Pedido = require("../models/Pedido");
+// services/processarEvento.js
+import { Payment } from "mercadopago";
+import mpClient from "../config/mpClient.js"; // 🔑 lembre-se do .js
+import Pedido from "../models/Pedido.js";
 
 const processarEvento = async (event) => {
   try {
@@ -40,4 +41,5 @@ const processarEvento = async (event) => {
   }
 };
 
-module.exports = { processarEvento };
+// 🔑 Export para ES Modules
+export default processarEvento;

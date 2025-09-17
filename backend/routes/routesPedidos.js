@@ -1,11 +1,12 @@
-const express = require("express");
-const Pedido = require("../models/Pedido");
+import express from "express";
+import Pedido from "../models/Pedido.js";
+
 const router = express.Router();
 
-
+// Listar todos os pedidos
 router.get("/", async (req, res) => {
   try {
-    const pedidos = await Pedido.find().sort({ createdAt: -1 }); 
+    const pedidos = await Pedido.find().sort({ createdAt: -1 });
     res.json(pedidos);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
@@ -16,11 +17,13 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const pedido = await Pedido.findById(req.params.id);
-    if (!pedido) return res.status(404).json({ error: "Pedido não encontrado" });
+    if (!pedido) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
     res.json(pedido);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar pedido" });
   }
 });
 
-module.exports = router;
+export default router;

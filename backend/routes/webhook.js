@@ -1,6 +1,7 @@
-const express = require("express");
-const Pedido = require("../models/Pedido");
-const mercadopago = require("mercadopago");
+// routes/routesWebhookMp.js
+import express from "express";
+import Pedido from "../models/Pedido.js";
+import mercadopago from "mercadopago";
 
 const router = express.Router();
 
@@ -37,4 +38,5 @@ router.post("/webhook", async (req, res) => {
   }
 });
 
-module.exports = router;
+// 🔑 Export para ES Modules
+export default router;

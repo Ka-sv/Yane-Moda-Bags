@@ -1,10 +1,10 @@
-const express = require("express");
+// routes/routesProdutos.js
+import express from "express";
+import Produto from "../models/produto.js"; // 🔑 lembre-se do .js no import local
+
 const router = express.Router();
-const Produto = require("../models/produto");
 
-
-
-
+// GET - listar todos os produtos
 router.get("/", async (req, res) => {
   try {
     const produtos = await Produto.find();
@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-
+// POST - adicionar um novo produto
 router.post("/", async (req, res) => {
   try {
     const novoProduto = new Produto(req.body);
@@ -27,5 +27,5 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
 
+export default router;

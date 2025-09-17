@@ -1,8 +1,21 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+// ------------------- IMPORTS -------------------
+import dotenv from "dotenv";
+dotenv.config();
 
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+
+// Rotas
+import produtoRoutes from "./routes/routesProdutos.js";
+import pedidosRoutes from "./routes/routesPedidos.js";
+import checkoutRoutes from "./routes/routesCheckout.js";
+import webhookRoutesMp from "./routes/routesWebhookMp.js";
+
+// Modelo
+import Pedido from "./models/Pedido.js";
+
+// ------------------- CONFIGURAÇÃO -------------------
 const app = express();
 
 const allowedOrigins = [
@@ -14,50 +27,31 @@ const allowedOrigins = [
 // ------------------- CORS -------------------
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-
-  if (
-    allowedOrigins.includes(origin) ||
-    /\.vercel\.app$/.test(origin) // qualquer subdomínio do Vercel
-  ) {
+  if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin"); // 🔑 importante para cache do Render
+    res.setHeader("Vary", "Origin");
   }
-
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
 
   next();
 });
 
-// Permite JSON
+// Permitir JSON
 app.use(express.json());
 
-// ------------------- Rotas -------------------
-// Produtos
-const produtoRoutes = require("./routes/routesProdutos");
+// ------------------- ROTAS -------------------
 app.use("/api/produtos", produtoRoutes);
-
-const pedidosRoutes = require("./routes/routesPedidos");
 app.use("/api/pedidos", pedidosRoutes);
-
-
-// Checkout
-const checkoutRoutes = require("./routes/routesCheckout");
 app.use("/api/checkout", checkoutRoutes);
-console.log("✅ Rotas de pedidos ativas em /api/pedidos");
-
-
-// Webhook Mercado Pago
-const webhookRoutesMp = require("./routes/routesWebhookMp");
 app.use("/api/mp/webhook", webhookRoutesMp);
 
-// ------------------- Status pedido -------------------
-const Pedido = require("./models/Pedido");
+console.log("✅ Rotas de pedidos ativas em /api/pedidos");
+
+// ------------------- STATUS PEDIDO -------------------
 app.get("/orders/:id/status", async (req, res) => {
   try {
     const pedido = await Pedido.findOne({ external_reference: req.params.id });
@@ -69,11 +63,11 @@ app.get("/orders/:id/status", async (req, res) => {
   }
 });
 
-// ------------------- Conexão MongoDB -------------------
+// ------------------- CONEXÃO MONGODB -------------------
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB conectado!"))
   .catch(err => console.error("Erro MongoDB:", err));
 
-// ------------------- Servidor -------------------
+// ------------------- SERVIDOR -------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
