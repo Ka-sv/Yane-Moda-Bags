@@ -1,5 +1,12 @@
 const express = require("express");
-const mercadopago = require("mercadopago");
+const { MercadoPagoConfig, Payment } = require("mercadopago");
+const client = new MercadoPagoConfig({
+  accessToken:
+    process.env.NODE_ENV !== "production"
+      ? process.env.MP_ACCESS_TOKEN_SANDBOX
+      : process.env.MP_ACCESS_TOKEN,
+});
+
 const Pedido = require("../models/Pedido");
 
 const router = express.Router();
@@ -9,8 +16,6 @@ const accessToken =
   process.env.NODE_ENV !== "production"
     ? process.env.MP_ACCESS_TOKEN_SANDBOX
     : process.env.MP_ACCESS_TOKEN;
-
-mercadopago.configurations.setAccessToken(accessToken);
 
 // ----------------- Função auxiliar -----------------
 function validarItens(itens) {
@@ -73,6 +78,36 @@ router.post("/pix", async (req, res) => {
       error: "Falha ao criar Pix",
       detalhes: e.response?.body || e.message,
     });
+  }
+});
+
+
+router.post("/pix", async (req, res) => {
+  try {
+    const { itens, email, firstName, lastName } = req.body;
+
+    
+    const total = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+
+    const payment = new Payment(client);
+
+    const response = await payment.create({
+      body: {
+        transaction_amount: total,
+        description: itens.map(i => i.nome).join(", "),
+        payment_method_id: "pix",
+        payer: {
+          email,
+          first_name: firstName,
+          last_name: lastName,
+        },
+      },
+    });
+
+    res.json(response);
+  } catch (error) {
+    console.error("Erro ao criar pagamento Pix:", error);
+    res.status(500).json({ error: "Falha ao criar pagamento Pix" });
   }
 });
 
