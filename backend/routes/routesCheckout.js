@@ -54,7 +54,12 @@ router.post("/pix", async (req, res) => {
       },
     });
 
-    res.json(response);
+    res.json({
+      orderId: response.id,
+      amount: response.transaction_amount,
+      pix_qr_base64: response.point_of_interaction.transaction_data.qr_code_base64,
+      pix_copia_cola: response.point_of_interaction.transaction_data.qr_code,
+    });
   } catch (error) {
     console.error("Erro ao criar pagamento Pix:", error);
     res.status(500).json({ error: "Falha ao criar pagamento Pix" });
