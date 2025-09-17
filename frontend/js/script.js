@@ -294,10 +294,6 @@ function iniciarTimer(totalSegundos) {
 
     el.textContent = `⏳ Pagamento expira em ${m}:${ss}`;
 
-    if (--s < 0) {
-      clearInterval(id);
-      el.textContent = "⛔ Prazo expirado. Gere outro Pix.";
-    }
   }, 1000);
 }
 
