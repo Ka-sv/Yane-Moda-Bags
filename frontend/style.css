@@ -426,4 +426,84 @@ body {
     width: 24px;
     height: 24px;
   }
+  #pix-modal .modal-content { width: 95%; }
+  #pix-qr { max-width: 160px; }
+  .copy-wrap { flex-direction: column; }
+  #copy-pix { width: 100%; }
 }
+
+
+/* Container geral da modal Pix */
+#pix-modal .modal-content {
+  max-width: 380px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Valor do Pix */
+#pix-total {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #14ffec;
+}
+
+/* QR Code ajustado */
+#pix-qr {
+  display: block;
+  margin: 0 auto 14px auto;
+  max-width: 220px;
+  height: auto;
+  border: 3px solid #14ffec;
+  border-radius: 10px;
+  background: #fff;
+  padding: 6px;
+}
+
+/* Copia e cola + botão */
+.copy-wrap {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 16px 0;
+}
+
+#pix-copia-cola {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #0d7377;
+  font-size: 0.9rem;
+  background: #fff;
+  color: #000;
+  text-overflow: ellipsis;
+}
+
+#copy-pix {
+  background: #0d7377;
+  color: #14ffec;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#copy-pix:hover {
+  background: #14ffec;
+  color: #0d7377;
+}
+
+/* Timer e status */
+#pix-timer {
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  color: #ffd369; /* amarelo para contagem regressiva */
+}
+
+#pix-status {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 4px;
+  color: #ff6961; /* vermelho padrão */
+}
+

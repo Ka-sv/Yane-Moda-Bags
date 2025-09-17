@@ -287,10 +287,17 @@ function iniciarPollingStatus(orderId) {
 function iniciarTimer(totalSegundos) {
   const el = document.getElementById("pix-timer");
   let s = totalSegundos;
+
   const id = setInterval(() => {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const ss = (s % 60).toString().padStart(2, "0");
-    el.textContent = `Expira em ${m}:${ss}`;
-    if (--s < 0) clearInterval(id);
+
+    el.textContent = `⏳ Pagamento expira em ${m}:${ss}`;
+
+    if (--s < 0) {
+      clearInterval(id);
+      el.textContent = "⛔ Prazo expirado. Gere outro Pix.";
+    }
   }, 1000);
 }
+
