@@ -14,11 +14,8 @@ router.post("/teste-pix", async (req, res) => {
       payment_method_id: "pix",
       payer: {
         email: "artemadeiradong@gmail.com",
-        
       },
     };
-    
-
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
@@ -30,6 +27,7 @@ router.post("/teste-pix", async (req, res) => {
     });
 
     const data = await response.json();
+    console.log("🔍 Resposta teste Pix:", data);
 
     res.json({
       id: data.id,
@@ -67,10 +65,13 @@ router.post("/pix", async (req, res) => {
       transaction_amount,
       description: "Compra Yane Moda & Bags",
       payment_method_id: "pix",
-      payer: { email },
+      payer: { 
+        email,
+        first_name: firstName,
+        last_name: lastName
+      },
       additional_info: {
-        items: mpItems,
-        payer: { first_name: firstName, last_name: lastName },
+        items: mpItems
       },
     };
 
@@ -84,6 +85,7 @@ router.post("/pix", async (req, res) => {
     });
 
     const data = await response.json();
+    console.log("🔍 Resposta checkout Pix:", data);
 
     res.json({
       id: data.id,
@@ -108,12 +110,12 @@ router.get("/status/:id", async (req, res) => {
       },
     });
     const data = await response.json();
+    console.log("🔍 Status pagamento:", data);
     res.json({ status: data.status });
   } catch (error) {
     console.error("Erro ao buscar status do pagamento:", error);
     res.status(500).json({ error: "Erro ao buscar status" });
   }
 });
-console.log("Resposta completa do MP:", data);
 
 export default router;
