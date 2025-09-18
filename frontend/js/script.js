@@ -4,7 +4,6 @@ const API_BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:5000" 
   : "https://yane-moda-bags.onrender.com";
 
-
 let produtosCarregados = [];
 
 // ------------------- DOMContentLoaded -------------------
@@ -85,7 +84,6 @@ function initCarrinho() {
   const { modal, lista, total, limparBtn, finalizarBtn, openCart, closeCart } = ensureCartDOM();
   if (!modal || !lista || !total) return;
 
-  // Abrir/fechar modal
   if (openCart) openCart.addEventListener("click", e => {
     e.preventDefault();
     modal.classList.add("show");
@@ -107,7 +105,6 @@ function initCarrinho() {
   if (limparBtn) limparBtn.addEventListener("click", limparCarrinho);
   if (finalizarBtn) finalizarBtn.addEventListener("click", finalizarCompra);
 
-  // Aumentar/diminuir quantidade
   lista.addEventListener("click", e => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
@@ -205,29 +202,18 @@ async function finalizarCompra() {
   }));
 
   try {
-    console.log("Body recebido do front-end:", { itens, email, firstName, lastName });
-    console.log("itens:", itens);
-    console.log("email:", email);
-    console.log("firstName:", firstName);
-    console.log("lastName:", lastName);
-
-
     const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itens, email, firstName, lastName, total })
+      body: JSON.stringify({ itens, email, firstName, lastName })
     });
 
-    const texto = await res.text();
-    console.log("Resposta do backend:", texto);
-
-    if (!res.ok) throw new Error("Falha ao iniciar checkout.");
-
-    const data = JSON.parse(texto);
+    const data = await res.json();
     console.log("Resposta do backend Pix:", data);
 
+    if (!res.ok) throw new Error(data.message || "Falha ao iniciar checkout.");
+
     abrirPixModal(data);
-    iniciarPollingStatus(data.orderId);
 
   } catch (e) {
     console.error("Erro ao finalizar compra:", e);
@@ -236,15 +222,19 @@ async function finalizarCompra() {
 }
 
 // ------------------- Modal Pix -------------------
-function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
+function abrirPixModal(data) {
   const modal = document.getElementById("pix-modal");
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
+  const amount = data.transaction_amount || 0;
+  const qrBase64 = data.point_of_interaction?.transaction_data?.qr_code_base64;
+  const qrCode = data.point_of_interaction?.transaction_data?.qr_code;
+
   document.getElementById("pix-total").textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
-  document.getElementById("pix-qr").src = `data:image/png;base64,${pix_qr_base64}`;
+  document.getElementById("pix-qr").src = `data:image/png;base64,${qrBase64}`;
   const copia = document.getElementById("pix-copia-cola");
-  copia.value = pix_copia_cola;
+  copia.value = qrCode;
 
   document.getElementById("copy-pix").onclick = async () => {
     await navigator.clipboard.writeText(copia.value);
@@ -253,6 +243,8 @@ function abrirPixModal({ orderId, amount, pix_qr_base64, pix_copia_cola }) {
 
   document.getElementById("close-pix").onclick = () => fecharPixModal();
   iniciarTimer(15 * 60);
+
+  iniciarPollingStatus(data.id);
 }
 
 function fecharPixModal() {
@@ -263,22 +255,22 @@ function fecharPixModal() {
 
 // ------------------- Polling e Timer -------------------
 let pollingInterval = null;
-function iniciarPollingStatus(orderId) {
+function iniciarPollingStatus(paymentId) {
   const statusEl = document.getElementById("pix-status");
   if (pollingInterval) clearInterval(pollingInterval);
 
   pollingInterval = setInterval(async () => {
     try {
-      const r = await fetch(`${API_BASE_URL}/orders/${orderId}/status`);
+      const r = await fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`);
       const { status } = await r.json();
 
       statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
-                             status === "paid" ? "Pagamento confirmado! 🎉" :
-                             "Cobrança expirada. Gere outra.";
+                             status === "approved" ? "Pagamento confirmado! 🎉" :
+                             "Cobrança expirada ou rejeitada.";
 
-      if (status === "paid" || status === "expired") {
+      if (status === "approved" || status === "expired" || status === "rejected") {
         clearInterval(pollingInterval);
-        if (status === "paid") {
+        if (status === "approved") {
           limparCarrinho();
           window.location.href = "/obrigado.html";
         }
@@ -299,6 +291,7 @@ function iniciarTimer(totalSegundos) {
 
     el.textContent = `⏳ Pagamento expira em ${m}:${ss}`;
 
+    if (s <= 0) clearInterval(id);
+    s--;
   }, 1000);
 }
-
