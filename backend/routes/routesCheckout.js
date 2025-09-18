@@ -1,13 +1,15 @@
 import express from "express";
-import fetch from "node-fetch"; // ou axios
+import fetch from "node-fetch";
 
 const router = express.Router();
 
 // Rota de teste Pix
 router.post("/teste-pix", async (req, res) => {
   try {
+    const transaction_amount = 1.0;
+
     const testePaymentData = {
-      transaction_amount: 1.0,
+      transaction_amount,
       description: "Teste Pix Produção",
       payment_method_id: "pix",
       payer: {
@@ -25,7 +27,14 @@ router.post("/teste-pix", async (req, res) => {
     });
 
     const data = await response.json();
-    res.json(data);
+
+    res.json({
+      id: data.id,
+      status: data.status,
+      transaction_amount,
+      pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
+      pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code,
+    });
   } catch (error) {
     console.error("Erro no teste Pix:", error);
     res.status(500).json({ error: "Erro ao processar teste Pix" });
@@ -47,7 +56,7 @@ router.post("/pix", async (req, res) => {
     const mpItems = itens.map(item => ({
       title: item.nome,
       quantity: item.quantidade,
-      unit_price: item.preco
+      unit_price: item.preco,
     }));
 
     const paymentData = {
@@ -71,7 +80,14 @@ router.post("/pix", async (req, res) => {
     });
 
     const data = await response.json();
-    res.json(data);
+
+    res.json({
+      id: data.id,
+      status: data.status,
+      transaction_amount,
+      pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
+      pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code,
+    });
   } catch (error) {
     console.error("Erro ao finalizar compra:", error);
     res.status(500).json({ error: "Erro ao finalizar compra" });
@@ -94,6 +110,5 @@ router.get("/status/:id", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar status" });
   }
 });
-
 
 export default router;
