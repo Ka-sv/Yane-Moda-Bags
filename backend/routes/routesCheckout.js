@@ -1,31 +1,7 @@
-import mongoose from "mongoose";
+import express from "express";
+import fetch from "node-fetch"; // ou axios
 
-const PedidoSchema = new mongoose.Schema({
-  itens: [
-    {
-      nome: { type: String, required: true },
-      preco: { type: Number, required: true },
-      quantidade: { type: Number, default: 1 },
-    },
-  ],
-  email: { type: String, required: true },
-  firstName: { type: String },
-  lastName: { type: String },
-  total: { type: Number, required: true },
-  status: {
-    type: String,
-    enum: ["pending", "approved", "rejected", "cancelled"],
-    default: "pending",
-  },
-  payment_id: { type: String },
-}, { timestamps: true }); // createdAt e updatedAt automáticos
-
-
-export default mongoose.models.Pedido || mongoose.model("Pedido", PedidoSchema);
-
-const express = require("express");
 const router = express.Router();
-const fetch = require("node-fetch"); // ou axios, dependendo do seu setup
 
 // Rota de teste Pix
 router.post("/teste-pix", async (req, res) => {
@@ -43,7 +19,7 @@ router.post("/teste-pix", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer APP_USR-xxxxxxxxxxxxxxxxxxxx", // seu token de produção
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
       },
       body: JSON.stringify(testePaymentData),
     });
@@ -76,8 +52,7 @@ router.post("/checkout/pix", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
-
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
       },
       body: JSON.stringify(paymentData),
     });
@@ -90,4 +65,4 @@ router.post("/checkout/pix", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
