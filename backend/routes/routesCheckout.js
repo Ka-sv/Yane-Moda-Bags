@@ -33,7 +33,7 @@ router.post("/teste-pix", async (req, res) => {
 });
 
 // Rota de checkout Pix real
-router.post("/checkout/pix", async (req, res) => {
+router.post("/pix", async (req, res) => {
   try {
     const { email, firstName, lastName, itens } = req.body;
 
