@@ -37,23 +37,29 @@ router.post("/pix", async (req, res) => {
   try {
     const { email, firstName, lastName, itens } = req.body;
 
+    // Calcular valor total
     const transaction_amount = itens.reduce(
       (total, item) => total + item.preco * item.quantidade,
       0
     );
-    
+
+    // Mapear itens para os nomes corretos do Mercado Pago
+    const mpItems = itens.map(item => ({
+      title: item.nome,
+      quantity: item.quantidade,
+      unit_price: item.preco
+    }));
+
     const paymentData = {
       transaction_amount,
       description: "Compra Yane Moda & Bags",
       payment_method_id: "pix",
       payer: { email },
       additional_info: {
-        items: itens,
+        items: mpItems,
         payer: { first_name: firstName, last_name: lastName },
       },
     };
-    
-    
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
