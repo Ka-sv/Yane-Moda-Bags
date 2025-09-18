@@ -227,15 +227,28 @@ function abrirPixModal(data) {
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
-  // Agora usamos os nomes que o backend retorna
-  document.getElementById("pix-total").textContent = `Total: R$ ${Number(data.transaction_amount).toFixed(2)}`;
-  document.getElementById("pix-qr").src = `data:image/png;base64,${data.pix_qr_base64}`;
+  // usar os nomes que o backend já retorna
+  const amount = data.transaction_amount || 0;
+  const qrBase64 = data.pix_qr_base64 || "";
+  const qrCode = data.pix_copia_cola || "";
+
+  document.getElementById("pix-total").textContent =
+    `Total: R$ ${Number(amount).toFixed(2)}`;
+
+  if (qrBase64) {
+    document.getElementById("pix-qr").src = `data:image/png;base64,${qrBase64}`;
+  } else {
+    document.getElementById("pix-qr").alt = "Erro ao gerar QR Code";
+  }
+
   const copia = document.getElementById("pix-copia-cola");
-  copia.value = data.pix_copia_cola;
+  copia.value = qrCode;
 
   document.getElementById("copy-pix").onclick = async () => {
-    await navigator.clipboard.writeText(copia.value);
-    document.getElementById("pix-status").textContent = "Código Pix copiado!";
+    if (copia.value) {
+      await navigator.clipboard.writeText(copia.value);
+      document.getElementById("pix-status").textContent = "Código Pix copiado!";
+    }
   };
 
   document.getElementById("close-pix").onclick = () => fecharPixModal();
@@ -243,6 +256,7 @@ function abrirPixModal(data) {
 
   iniciarPollingStatus(data.id);
 }
+
 
 function fecharPixModal() {
   const modal = document.getElementById("pix-modal");
