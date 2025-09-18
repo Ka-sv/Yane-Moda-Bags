@@ -14,8 +14,11 @@ router.post("/teste-pix", async (req, res) => {
       payment_method_id: "pix",
       payer: {
         email: "artemadeiradong@gmail.com",
+        
       },
     };
+    
+
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
@@ -111,5 +114,6 @@ router.get("/status/:id", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar status" });
   }
 });
+console.log("Resposta completa do MP:", data);
 
 export default router;
