@@ -227,14 +227,11 @@ function abrirPixModal(data) {
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
-  const amount = data.transaction_amount || 0;
-  const qrBase64 = data.point_of_interaction?.transaction_data?.qr_code_base64;
-  const qrCode = data.point_of_interaction?.transaction_data?.qr_code;
-
-  document.getElementById("pix-total").textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
-  document.getElementById("pix-qr").src = `data:image/png;base64,${qrBase64}`;
+  // Agora usamos os nomes que o backend retorna
+  document.getElementById("pix-total").textContent = `Total: R$ ${Number(data.transaction_amount).toFixed(2)}`;
+  document.getElementById("pix-qr").src = `data:image/png;base64,${data.pix_qr_base64}`;
   const copia = document.getElementById("pix-copia-cola");
-  copia.value = qrCode;
+  copia.value = data.pix_copia_cola;
 
   document.getElementById("copy-pix").onclick = async () => {
     await navigator.clipboard.writeText(copia.value);
