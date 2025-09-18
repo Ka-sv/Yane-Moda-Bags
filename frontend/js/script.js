@@ -1,7 +1,7 @@
 // ------------------- Config -------------------
 let carrinho = [];
 const API_BASE_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:5000" 
+  ? "http://localhost:5000"
   : "https://yane-moda-bags.onrender.com";
 
 let produtosCarregados = [];
@@ -202,7 +202,7 @@ async function finalizarCompra() {
   }));
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
+    const res = await fetch(`${API_BASE_URL}/api/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itens, email, firstName, lastName })
@@ -226,6 +226,8 @@ async function finalizarCompra() {
 // ------------------- Modal Pix -------------------
 function abrirPixModal(data) {
   const modal = document.getElementById("pix-modal");
+  if (!modal) return;
+
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
@@ -233,26 +235,34 @@ function abrirPixModal(data) {
   const qrBase64 = data.pix_qr_base64 || "";
   const qrCode = data.pix_copia_cola || "";
 
-  document.getElementById("pix-total").textContent =
-    `Total: R$ ${Number(amount).toFixed(2)}`;
+  const totalEl = document.getElementById("pix-total");
+  if (totalEl) totalEl.textContent = `Total: R$ ${Number(amount).toFixed(2)}`;
 
   const qrEl = document.getElementById("pix-qr");
-  if (qrBase64) qrEl.src = `data:image/png;base64,${qrBase64}`;
-  else qrEl.alt = "Erro ao gerar QR Code";
+  if (qrEl) {
+    if (qrBase64) qrEl.src = `data:image/png;base64,${qrBase64}`;
+    else qrEl.alt = "Erro ao gerar QR Code";
+  }
 
-  const copia = document.getElementById("pix-copia-cola");
-  copia.value = qrCode;
+  const copiaEl = document.getElementById("pix-copia-cola");
+  if (copiaEl) copiaEl.value = qrCode;
 
-  document.getElementById("copy-pix").onclick = async () => {
-    if (copia.value) {
-      await navigator.clipboard.writeText(copia.value);
-      document.getElementById("pix-status").textContent = "Código Pix copiado!";
-    }
-  };
+  const copyBtn = document.getElementById("copy-pix");
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      if (copiaEl.value) {
+        await navigator.clipboard.writeText(copiaEl.value);
+        const statusEl = document.getElementById("pix-status");
+        if (statusEl) statusEl.textContent = "Código Pix copiado!";
+      }
+    };
+  }
 
-  document.getElementById("close-pix").onclick = () => fecharPixModal();
+  const closeBtn = document.getElementById("close-pix");
+  if (closeBtn) closeBtn.onclick = () => fecharPixModal();
+
   iniciarTimer(15 * 60);
-  iniciarPollingStatus(data.id);
+  if (data.id) iniciarPollingStatus(data.id);
 }
 
 function fecharPixModal() {
@@ -269,7 +279,7 @@ function iniciarPollingStatus(paymentId) {
 
   pollingInterval = setInterval(async () => {
     try {
-      const r = await fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`);
+      const r = await fetch(`${API_BASE_URL}/api/status/${paymentId}`);
       const { status } = await r.json();
 
       statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
