@@ -37,8 +37,13 @@ router.post("/pix", async (req, res) => {
   try {
     const { email, firstName, lastName, itens } = req.body;
 
+    const transaction_amount = itens.reduce(
+      (total, item) => total + item.preco * item.quantidade,
+      0
+    );
+    
     const paymentData = {
-      transaction_amount: itens.reduce((total, item) => total + item.price, 0),
+      transaction_amount,
       description: "Compra Yane Moda & Bags",
       payment_method_id: "pix",
       payer: { email },
@@ -47,6 +52,8 @@ router.post("/pix", async (req, res) => {
         payer: { first_name: firstName, last_name: lastName },
       },
     };
+    
+    
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
