@@ -202,7 +202,7 @@ async function finalizarCompra() {
   }));
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
+    const res = await fetch(`${API_BASE_URL}/api/pix`, { // ✅ certifique-se que o endpoint corresponde ao backend
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itens, email, firstName, lastName })
@@ -211,7 +211,9 @@ async function finalizarCompra() {
     const data = await res.json();
     console.log("Resposta do backend Pix:", data);
 
-    if (!res.ok) throw new Error(data.message || "Falha ao iniciar checkout.");
+    if (!res.ok || !data.pix_qr_base64) {
+      throw new Error(data.error || "Falha ao iniciar checkout.");
+    }
 
     abrirPixModal(data);
 
@@ -227,7 +229,6 @@ function abrirPixModal(data) {
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
-  // usar os nomes que o backend já retorna
   const amount = data.transaction_amount || 0;
   const qrBase64 = data.pix_qr_base64 || "";
   const qrCode = data.pix_copia_cola || "";
@@ -235,11 +236,9 @@ function abrirPixModal(data) {
   document.getElementById("pix-total").textContent =
     `Total: R$ ${Number(amount).toFixed(2)}`;
 
-  if (qrBase64) {
-    document.getElementById("pix-qr").src = `data:image/png;base64,${qrBase64}`;
-  } else {
-    document.getElementById("pix-qr").alt = "Erro ao gerar QR Code";
-  }
+  const qrEl = document.getElementById("pix-qr");
+  if (qrBase64) qrEl.src = `data:image/png;base64,${qrBase64}`;
+  else qrEl.alt = "Erro ao gerar QR Code";
 
   const copia = document.getElementById("pix-copia-cola");
   copia.value = qrCode;
@@ -253,10 +252,8 @@ function abrirPixModal(data) {
 
   document.getElementById("close-pix").onclick = () => fecharPixModal();
   iniciarTimer(15 * 60);
-
   iniciarPollingStatus(data.id);
 }
-
 
 function fecharPixModal() {
   const modal = document.getElementById("pix-modal");
@@ -272,7 +269,7 @@ function iniciarPollingStatus(paymentId) {
 
   pollingInterval = setInterval(async () => {
     try {
-      const r = await fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`);
+      const r = await fetch(`${API_BASE_URL}/api/status/${paymentId}`);
       const { status } = await r.json();
 
       statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
@@ -287,7 +284,7 @@ function iniciarPollingStatus(paymentId) {
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao verificar status Pix:", err);
     }
   }, 4000);
 }
