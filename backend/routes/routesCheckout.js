@@ -111,9 +111,18 @@ router.post("/pix", async (req, res) => {
       id: data.id,
       status: data.status,
       transaction_amount,
-      pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
-      pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code,
+      pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64 || null,
+      pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code || null,
+      raw_response: data  
     });
+
+    // res.json({
+    //   id: data.id,
+    //   status: data.status,
+    //   transaction_amount,
+    //   pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
+    //   pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code,
+    // });
 
   } catch (error) {
     console.error("❌ Erro ao finalizar compra:", error);
