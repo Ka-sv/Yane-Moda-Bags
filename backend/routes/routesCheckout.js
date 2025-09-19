@@ -50,7 +50,8 @@ router.post("/pix", async (req, res) => {
     
     
 
-    console.log("🚀 Enviando dados pagamento Pix:", paymentData);
+    console.log("📤 Payload final enviado ao MP:", JSON.stringify(paymentData, null, 2));
+
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
