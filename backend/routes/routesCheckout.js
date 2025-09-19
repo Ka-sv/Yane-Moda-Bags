@@ -31,7 +31,7 @@ router.post("/pix", async (req, res) => {
     console.log("💰 Valor total calculado:", transaction_amount, typeof transaction_amount);
 
     const paymentData = {
-      transaction_amount,      
+      transaction_amount,
       description: "Compra Yane Moda & Bags",
       payment_method_id: "pix",
       payer: { 
@@ -40,6 +40,7 @@ router.post("/pix", async (req, res) => {
         last_name: lastName
       }
     };
+    
     
 
     console.log("🚀 Enviando dados pagamento Pix:", paymentData);
