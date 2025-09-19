@@ -279,14 +279,13 @@ function iniciarPollingStatus(paymentId) {
 
   pollingInterval = setInterval(async () => {
     try {
-      fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`)
-;
+      const r = await fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`);
       const { status } = await r.json();
-
+  
       statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
                              status === "approved" ? "Pagamento confirmado! 🎉" :
                              "Cobrança expirada ou rejeitada.";
-
+  
       if (status === "approved" || status === "expired" || status === "rejected") {
         clearInterval(pollingInterval);
         if (status === "approved") {
@@ -298,6 +297,7 @@ function iniciarPollingStatus(paymentId) {
       console.error("Erro ao verificar status Pix:", err);
     }
   }, 4000);
+  
 }
 
 function iniciarTimer(totalSegundos) {
