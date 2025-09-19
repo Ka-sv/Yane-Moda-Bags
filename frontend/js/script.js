@@ -180,57 +180,36 @@ function atualizarCarrinho() {
 
 // ------------------- Checkout / Pix -------------------
 async function finalizarCompra() {
-  if (carrinho.length === 0) {
-    alert("Seu carrinho está vazio.");
-    return;
-  }
-
-  const email = document.getElementById("checkout-email")?.value.trim();
-  const firstName = document.getElementById("checkout-nome")?.value.trim();
-  const lastName = document.getElementById("checkout-sobrenome")?.value.trim();
-
-  if (!email || !firstName || !lastName) {
-    alert("Preencha email, nome e sobrenome.");
-    return;
-  }
-
-  const itens = carrinho.map(i => ({
-    id: i.id,
-    nome: i.nome,
-    quantidade: i.quantidade,
-    preco: i.preco
-  }));
-
   try {
-    const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
+    const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itens, email, firstName, lastName })
+      body: JSON.stringify({
+        email: "cliente@email.com",
+        firstName: "Fulano",
+        lastName: "Silva",
+        itens: carrinho.map(item => ({
+          nome: item.nome,
+          quantidade: item.quantidade,
+          preco: item.preco
+        }))
+      })
     });
 
     const data = await response.json();
-    console.log("🔍 Resposta checkout Pix:", data);
 
     if (!response.ok) {
-      console.error("❌ Erro Mercado Pago:", data);
-      return res.status(response.status).json({
-        status: response.status,
-        ...data
-      });
+      throw new Error(data.message || "Erro no pagamento");
     }
 
+    console.log("✅ Pagamento criado:", data);
+    abrirPixModal(data); // já abre o modal Pix se der certo
 
-    if (!res.ok || !data.pix_qr_base64) {
-      throw new Error(data.error || "Falha ao iniciar checkout.");
-    }
-
-    abrirPixModal(data);
-
-  } catch (e) {
-    console.error("Erro ao finalizar compra:", e);
-    alert("Não foi possível finalizar a compra. Veja o console para detalhes.");
+  } catch (err) {
+    console.error("❌ Erro ao finalizar compra:", err);
   }
 }
+
 
 // ------------------- Modal Pix -------------------
 function abrirPixModal(data) {
