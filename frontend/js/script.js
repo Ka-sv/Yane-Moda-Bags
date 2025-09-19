@@ -208,8 +208,17 @@ async function finalizarCompra() {
       body: JSON.stringify({ itens, email, firstName, lastName })
     });
 
-    const data = await res.json();
-    console.log("Resposta do backend Pix:", data);
+    const data = await response.json();
+    console.log("🔍 Resposta checkout Pix:", data);
+
+    if (!response.ok) {
+      console.error("❌ Erro Mercado Pago:", data);
+      return res.status(response.status).json({
+        status: response.status,
+        ...data
+      });
+    }
+
 
     if (!res.ok || !data.pix_qr_base64) {
       throw new Error(data.error || "Falha ao iniciar checkout.");

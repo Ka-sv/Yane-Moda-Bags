@@ -17,6 +17,8 @@ router.post("/teste-pix", async (req, res) => {
       },
     };
 
+    console.log("🚀 Enviando dados teste Pix:", testePaymentData);
+
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
       headers: {
@@ -29,13 +31,9 @@ router.post("/teste-pix", async (req, res) => {
     const data = await response.json();
     console.log("🔍 Resposta teste Pix:", data);
 
-    // Se deu erro no MP, retorna o erro completo
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error || "Erro no Mercado Pago",
-        message: data.message,
-        cause: data.cause,
-      });
+      console.error("❌ Erro Mercado Pago:", data);
+      return res.status(response.status).json(data);
     }
 
     res.json({
@@ -57,21 +55,26 @@ router.post("/pix", async (req, res) => {
   try {
     const { email, firstName, lastName, itens } = req.body;
 
+    console.log("📩 Dados recebidos do frontend:", req.body);
+
     if (!email || !firstName || !lastName || !itens?.length) {
       return res.status(400).json({ error: "Dados de checkout inválidos" });
     }
 
-    // Calcular valor total
+    // Calcular valor total (garantindo que seja número)
     const transaction_amount = itens.reduce(
-      (total, item) => total + item.preco * item.quantidade,
+      (total, item) => total + Number(item.preco) * Number(item.quantidade),
       0
     );
 
     const mpItems = itens.map(item => ({
       title: item.nome,
-      quantity: item.quantidade,
-      unit_price: item.preco,
+      quantity: Number(item.quantidade),
+      unit_price: Number(item.preco),
     }));
+
+    console.log("📦 Itens enviados ao Mercado Pago:", mpItems);
+    console.log("💰 Valor total calculado:", transaction_amount, typeof transaction_amount);
 
     const paymentData = {
       transaction_amount,
@@ -84,6 +87,8 @@ router.post("/pix", async (req, res) => {
       },
       additional_info: { items: mpItems },
     };
+
+    console.log("🚀 Enviando dados pagamento Pix:", paymentData);
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
@@ -98,11 +103,8 @@ router.post("/pix", async (req, res) => {
     console.log("🔍 Resposta checkout Pix:", data);
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error || "Erro no Mercado Pago",
-        message: data.message,
-        cause: data.cause,
-      });
+      console.error("❌ Erro Mercado Pago:", data);
+      return res.status(response.status).json(data);
     }
 
     res.json({
@@ -123,6 +125,8 @@ router.post("/pix", async (req, res) => {
 router.get("/status/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("🔎 Verificando status pagamento ID:", id);
+
     const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
       headers: {
         Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
@@ -133,11 +137,8 @@ router.get("/status/:id", async (req, res) => {
     console.log("🔍 Status pagamento:", data);
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error || "Erro no Mercado Pago",
-        message: data.message,
-        cause: data.cause,
-      });
+      console.error("❌ Erro Mercado Pago (status):", data);
+      return res.status(response.status).json(data);
     }
 
     res.json({ status: data.status });
