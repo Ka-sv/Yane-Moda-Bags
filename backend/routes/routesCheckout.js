@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 const router = express.Router();
 
-// Rota de teste Pix
+// ------------------- Rota de teste Pix -------------------
 router.post("/teste-pix", async (req, res) => {
   try {
     const transaction_amount = 1.0;
@@ -29,6 +29,15 @@ router.post("/teste-pix", async (req, res) => {
     const data = await response.json();
     console.log("🔍 Resposta teste Pix:", data);
 
+    // Se deu erro no MP, retorna o erro completo
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error || "Erro no Mercado Pago",
+        message: data.message,
+        cause: data.cause,
+      });
+    }
+
     res.json({
       id: data.id,
       status: data.status,
@@ -36,17 +45,21 @@ router.post("/teste-pix", async (req, res) => {
       pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64 || null,
       pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code || null,
     });
-    
+
   } catch (error) {
-    console.error("Erro no teste Pix:", error);
+    console.error("❌ Erro no teste Pix:", error);
     res.status(500).json({ error: "Erro ao processar teste Pix" });
   }
 });
 
-// Rota de checkout Pix real
+// ------------------- Rota de checkout Pix real -------------------
 router.post("/pix", async (req, res) => {
   try {
     const { email, firstName, lastName, itens } = req.body;
+
+    if (!email || !firstName || !lastName || !itens?.length) {
+      return res.status(400).json({ error: "Dados de checkout inválidos" });
+    }
 
     // Calcular valor total
     const transaction_amount = itens.reduce(
@@ -54,7 +67,6 @@ router.post("/pix", async (req, res) => {
       0
     );
 
-    // Mapear itens para os nomes corretos do Mercado Pago
     const mpItems = itens.map(item => ({
       title: item.nome,
       quantity: item.quantidade,
@@ -70,9 +82,7 @@ router.post("/pix", async (req, res) => {
         first_name: firstName,
         last_name: lastName
       },
-      additional_info: {
-        items: mpItems
-      },
+      additional_info: { items: mpItems },
     };
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
@@ -87,6 +97,14 @@ router.post("/pix", async (req, res) => {
     const data = await response.json();
     console.log("🔍 Resposta checkout Pix:", data);
 
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error || "Erro no Mercado Pago",
+        message: data.message,
+        cause: data.cause,
+      });
+    }
+
     res.json({
       id: data.id,
       status: data.status,
@@ -94,13 +112,14 @@ router.post("/pix", async (req, res) => {
       pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
       pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code,
     });
+
   } catch (error) {
-    console.error("Erro ao finalizar compra:", error);
+    console.error("❌ Erro ao finalizar compra:", error);
     res.status(500).json({ error: "Erro ao finalizar compra" });
   }
 });
 
-// Rota para verificar status de pagamento
+// ------------------- Rota para verificar status de pagamento -------------------
 router.get("/status/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -109,11 +128,22 @@ router.get("/status/:id", async (req, res) => {
         Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
       },
     });
+
     const data = await response.json();
     console.log("🔍 Status pagamento:", data);
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error || "Erro no Mercado Pago",
+        message: data.message,
+        cause: data.cause,
+      });
+    }
+
     res.json({ status: data.status });
+
   } catch (error) {
-    console.error("Erro ao buscar status do pagamento:", error);
+    console.error("❌ Erro ao buscar status do pagamento:", error);
     res.status(500).json({ error: "Erro ao buscar status" });
   }
 });
