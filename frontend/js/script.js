@@ -202,7 +202,7 @@ async function finalizarCompra() {
   }));
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/pix`, {
+    const res = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itens, email, firstName, lastName })
@@ -279,7 +279,8 @@ function iniciarPollingStatus(paymentId) {
 
   pollingInterval = setInterval(async () => {
     try {
-      const r = await fetch(`${API_BASE_URL}/api/status/${paymentId}`);
+      fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`)
+;
       const { status } = await r.json();
 
       statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
