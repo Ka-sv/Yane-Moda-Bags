@@ -3,52 +3,6 @@ import fetch from "node-fetch";
 
 const router = express.Router();
 
-// ------------------- Rota de teste Pix -------------------
-router.post("/teste-pix", async (req, res) => {
-  try {
-    const transaction_amount = 1.0;
-
-    const testePaymentData = {
-      transaction_amount,
-      description: "Teste Pix Produção",
-      payment_method_id: "pix",
-      payer: {
-        email: "artemadeiradong@gmail.com",
-      },
-    };
-
-    console.log("🚀 Enviando dados teste Pix:", testePaymentData);
-
-    const response = await fetch("https://api.mercadopago.com/v1/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify(testePaymentData),
-    });
-
-    const data = await response.json();
-    console.log("🔍 Resposta teste Pix:", data);
-
-    if (!response.ok) {
-      console.error("❌ Erro Mercado Pago:", data);
-      return res.status(response.status).json(data);
-    }
-
-    res.json({
-      id: data.id,
-      status: data.status,
-      transaction_amount,
-      pix_qr_base64: data.point_of_interaction?.transaction_data?.qr_code_base64 || null,
-      pix_copia_cola: data.point_of_interaction?.transaction_data?.qr_code || null,
-    });
-
-  } catch (error) {
-    console.error("❌ Erro no teste Pix:", error);
-    res.status(500).json({ error: "Erro ao processar teste Pix" });
-  }
-});
 
 // ------------------- Rota de checkout Pix real -------------------
 router.post("/pix", async (req, res) => {
