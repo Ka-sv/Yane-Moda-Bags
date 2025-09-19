@@ -16,10 +16,12 @@ router.post("/pix", async (req, res) => {
     }
 
     // Calcular valor total (garantindo que seja número)
-    const transaction_amount = itens.reduce(
-      (total, item) => total + Number(item.preco) * Number(item.quantidade),
+    const transaction_amount = Number(itens.reduce(
+      (total, item) => total + (Number(item.preco) || 0) * (Number(item.quantidade) || 0),
       0
-    );
+    ).toFixed(2));
+    
+    
 
     const mpItems = itens.map(item => ({
       title: item.nome,
@@ -30,8 +32,10 @@ router.post("/pix", async (req, res) => {
     console.log("📦 Itens enviados ao Mercado Pago:", mpItems);
     console.log("💰 Valor total calculado:", transaction_amount, typeof transaction_amount);
 
+    
+
     const paymentData = {
-      transaction_amount,
+      transaction_amount: Number(transaction_amount),
       description: "Compra Yane Moda & Bags",
       payment_method_id: "pix",
       payer: { 
@@ -40,6 +44,9 @@ router.post("/pix", async (req, res) => {
         last_name: lastName
       }
     };
+    
+    console.log("💰 Valor final enviado:", paymentData.transaction_amount, typeof paymentData.transaction_amount);
+
     
     
 
