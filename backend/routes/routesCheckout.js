@@ -1,5 +1,6 @@
 import express from "express";
 import fetch from "node-fetch";
+import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
 
@@ -58,6 +59,7 @@ router.post("/pix", async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+        "X-Idempotency-Key": uuidv4(), // 👈 chave única para cada pagamento
       },
       body: JSON.stringify(paymentData),
     });
