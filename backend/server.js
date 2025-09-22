@@ -62,6 +62,12 @@ app.get("/orders/:id/status", async (req, res) => {
     res.status(500).json({ error: "Falha ao consultar status" });
   }
 });
+;
+
+app.get("/ping", (req, res) => {
+  res.send("checkout ok 🚀");
+});
+
 
 // ------------------- CONEXÃO MONGODB -------------------
 mongoose.connect(process.env.MONGO_URI)

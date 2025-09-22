@@ -3,6 +3,21 @@ import Pedido from "../models/Pedido.js";
 
 const router = express.Router();
 
+
+
+router.get("/pagos", async (req, res) => {
+  try {
+    const pedidosPagos = await Pedido.find({ status: "approved" });
+    res.json(pedidosPagos);
+  } catch (err) {
+    console.error("❌ Erro ao buscar pedidos pagos:", err); // 👈 log detalhado
+    res.status(500).json({ 
+      error: "Erro ao buscar pedidos pagos", 
+      detalhe: err.message 
+    });
+  }
+});
+
 // Listar todos os pedidos
 router.get("/", async (req, res) => {
   try {
@@ -12,6 +27,10 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
   }
 });
+
+
+
+
 
 // Consultar status de um pedido específico
 router.get("/:id", async (req, res) => {
@@ -25,5 +44,9 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar pedido" });
   }
 });
+
+
+
+
 
 export default router;
