@@ -1,16 +1,13 @@
 import express from "express";
 import Pedido from "../models/Pedido.js";
-
 const router = express.Router();
-
-
 
 router.get("/pagos", async (req, res) => {
   try {
     const pedidosPagos = await Pedido.find({ status: "approved" });
     res.json(pedidosPagos);
   } catch (err) {
-    console.error("❌ Erro ao buscar pedidos pagos:", err); // 👈 log detalhado
+    console.error("❌ Erro ao buscar pedidos pagos:", err); 
     res.status(500).json({ 
       error: "Erro ao buscar pedidos pagos", 
       detalhe: err.message 
@@ -27,9 +24,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
   }
 });
-
-
-
 
 
 // Consultar status de um pedido específico

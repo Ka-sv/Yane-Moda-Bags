@@ -278,7 +278,7 @@ function iniciarPollingStatus(paymentId) {
         clearInterval(pollingInterval);
         if (status === "approved") {
           limparCarrinho();
-          window.location.href = "/obrigado.html";
+          window.location.href = "/sucesso.html";
         }
       }
     } catch (err) {
@@ -301,4 +301,39 @@ function iniciarTimer(totalSegundos) {
     if (s <= 0) clearInterval(id);
     s--;
   }, 1000);
+}
+
+
+
+async function carregarPedidosPagos() {
+  try {
+    const response = await fetch("https://yane-moda-bags.onrender.com/api/pedidos");
+    const pedidos = await response.json();
+
+    const pagos = pedidos.filter(p => p.status === "approved");
+
+    const tabela = document.getElementById("tabela-pedidos");
+    if (!tabela) return; // evita erro se não estiver na página pedidos.html
+
+    tabela.innerHTML = "";
+
+    pagos.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.firstName} ${p.lastName}</td>
+        <td>${p.email}</td>
+        <td>${p.itens.map(i => `${i.nome} (x${i.quantidade})`).join(", ")}</td>
+        <td>R$ ${p.total.toFixed(2)}</td>
+        <td>${new Date(p.createdAt).toLocaleString("pt-BR")}</td>
+      `;
+      tabela.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar pedidos pagos:", err);
+  }
+}
+
+// só executa se a página pedidos.html estiver aberta
+if (document.getElementById("tabela-pedidos")) {
+  carregarPedidosPagos();
 }
