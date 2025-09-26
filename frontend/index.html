@@ -36,39 +36,69 @@
   </main>
 
   <!-- Carrinho -->
-  <div id="cart-modal" class="modal" aria-hidden="true">
-    <div class="modal-content">
-      <div class="cart-header">
-        <h2>Meu Carrinho</h2>
-        <button class="close" id="close-cart" aria-label="Fechar">&times;</button>
-      </div>
-      <ul id="lista-carrinho"></ul>
-      <div class="cart-summary">
-        <span id="total">Total: R$ 0,00</span>
-      
-        <div class="checkout-form">
-          <div class="checkout-email">
-            <label for="checkout-email">E-mail:</label>
-            <input type="email" id="checkout-email" placeholder="Digite seu e-mail" required>
-          </div>
-          <div class="checkout-name">
-            <label for="checkout-nome">Nome:</label>
-            <input type="text" id="checkout-nome" placeholder="Digite seu nome" required>
-          </div>
-          <div class="checkout-sobrenome">
-            <label for="checkout-sobrenome">Sobrenome:</label>
-            <input type="text" id="checkout-sobrenome" placeholder="Digite seu sobrenome" required>
-          </div>
-        </div>
-      
-        <div class="cart-actions">
-          <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
-          <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>
-        </div>
-      </div>
-      
+  <!-- Carrinho -->
+<div id="cart-modal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <div class="cart-header">
+      <h2>Meu Carrinho</h2>
+      <button class="close" id="close-cart" aria-label="Fechar">&times;</button>
     </div>
+    <ul id="lista-carrinho"></ul>
+    <div class="cart-summary">
+      <span id="total">Total: R$ 0,00</span>
+      <div id="resumo-total"></div>
+
+      <!-- Checkout Form -->
+      <div class="checkout-form">
+        <div class="checkout-email">
+          <label for="checkout-email">E-mail:</label>
+          <input type="email" id="checkout-email" placeholder="Digite seu e-mail" required>
+        </div>
+        <div class="checkout-name">
+          <label for="checkout-nome">Nome:</label>
+          <input type="text" id="checkout-nome" placeholder="Digite seu nome" required>
+        </div>
+        <div class="checkout-sobrenome">
+          <label for="checkout-sobrenome">Sobrenome:</label>
+          <input type="text" id="checkout-sobrenome" placeholder="Digite seu sobrenome" required>
+        </div>
+
+        <!-- NOVO: Método de entrega -->
+        <div class="checkout-entrega">
+          <p>Escolha o método de entrega:</p>
+          <label>
+            <input type="radio" name="metodoEntrega" value="retirada" checked>
+            Retirada no local
+          </label>
+          <label>
+            <input type="radio" name="metodoEntrega" value="delivery">
+            Entrega em domicílio
+          </label>
+        </div>
+
+        <!-- NOVO: Endereço (mostra só se for delivery) -->
+        <div id="endereco-entrega" style="display:none; margin-top: 10px;">
+          <h4>Endereço de entrega</h4>
+          <input type="text" id="checkout-cep" placeholder="CEP" required>
+          <input type="text" id="checkout-rua" placeholder="Rua" required>
+          <input type="text" id="checkout-numero" placeholder="Número" required>
+          <input type="text" id="checkout-bairro" placeholder="Bairro" required>
+          <input type="text" id="checkout-cidade" placeholder="Cidade" required>
+          <input type="text" id="checkout-estado" placeholder="Estado" required>
+          <input type="text" id="checkout-complemento" placeholder="Complemento (opcional)">
+        </div>
+      </div>
+
+      <div class="cart-actions">
+        <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
+        <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>
+      </div>
+    </div>
+          
+
   </div>
+</div>
+
 
   <!-- Modal Pix -->
   <div id="pix-modal" class="modal" aria-hidden="true">
@@ -107,5 +137,7 @@
  
   
   <script src="/frontend/js/script.js"></script>
+  
+
 </body>
 </html>

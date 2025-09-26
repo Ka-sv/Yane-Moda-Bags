@@ -4,7 +4,7 @@ const ProdutoSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   preco: { type: Number, required: true },
   descricao: String,
-  imagem: String
-}, { timestamps: true }); // optional: createdAt e updatedAt automáticos
+  imagens: [String] 
+}, { timestamps: true }); 
 
 export default mongoose.model("Produto", ProdutoSchema);

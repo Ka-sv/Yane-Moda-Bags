@@ -8,15 +8,12 @@ const router = express.Router();
 // ------------------- Rota de checkout Pix -------------------
 router.post("/pix", async (req, res) => {
   try {
-    const { email, firstName, lastName, itens } = req.body;
+    const { email, firstName, lastName, itens, frete, prazo, total, metodoEntrega, endereco } = req.body;
     if (!email || !firstName || !lastName || !itens?.length) {
       return res.status(400).json({ error: "Dados de checkout inválidos" });
     }
 
-    const transaction_amount = Number(itens.reduce(
-      (total, item) => total + (Number(item.preco) || 0) * (Number(item.quantidade) || 0),
-      0
-    ).toFixed(2));
+    const transaction_amount = Number(Number(total).toFixed(2));
 
     const paymentData = {
       transaction_amount,
@@ -44,6 +41,10 @@ router.post("/pix", async (req, res) => {
       email,
       firstName,
       lastName,
+      frete,
+      prazo,
+      metodoEntrega,
+      endereco,
       total: transaction_amount,
       status: "pending",
       payment_id: data.id

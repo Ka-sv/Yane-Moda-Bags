@@ -68,6 +68,9 @@ app.get("/ping", (req, res) => {
   res.send("checkout ok 🚀");
 });
 
+import freteRoutes from "./routes/frete.js";
+app.use("/api/frete", freteRoutes);
+
 
 // ------------------- CONEXÃO MONGODB -------------------
 mongoose.connect(process.env.MONGO_URI)

@@ -1,8 +1,13 @@
 // ------------------- Config -------------------
 let carrinho = [];
-const API_BASE_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:5000"
-  : "https://yane-moda-bags.onrender.com";
+// const API_BASE_URL = window.location.hostname.includes("localhost")
+//   ? "http://localhost:5000"
+//   : "https://yane-moda-bags.onrender.com";
+  const API_BASE_URL =
+  window.location.hostname.includes("localhost") ||
+  window.location.hostname.includes("127.0.0.1")
+    ? "http://localhost:5000"
+    : "https://yane-moda-bags.onrender.com";
 
 let produtosCarregados = [];
 
@@ -39,21 +44,87 @@ function mostrarProdutos(produtos) {
   }
 
   produtos.forEach(p => {
-    const div = document.createElement("div");
-    div.classList.add("card");
-    div.innerHTML = `
-      <img src="${p.imagem || 'https://via.placeholder.com/300x200'}" alt="${p.nome || ''}">
-      <h3>${p.nome}</h3>
-      <p>${p.descricao || ''}</p>
+    // aceita tanto o campo novo (imagens: [String]) quanto o antigo (imagem: String)
+    let imagens = [];
+
+// se vier array (novo schema)
+if (Array.isArray(p.imagens) && p.imagens.length > 0) {
+  imagens = p.imagens.filter(Boolean);
+}
+// se vier string única (schema antigo)
+else if (typeof p.imagem === "string" && p.imagem.trim() !== "") {
+  imagens = [p.imagem];
+}
+// fallback
+else {
+  imagens = ["https://via.placeholder.com/300x300?text=Sem+imagem"];
+}
+
+
+    // card
+    const card = document.createElement("div");
+    card.className = "card produto-card";
+
+    // container da imagem principal + miniaturas (lado a lado)
+    const container = document.createElement("div");
+    container.className = "produto-container";
+
+    const mainImg = document.createElement("img");
+    mainImg.className = "produto-principal";
+    mainImg.src = imagens[0];
+    mainImg.alt = p.nome || "";
+
+    const thumbsWrapper = document.createElement("div");
+    thumbsWrapper.className = "miniaturas";
+
+    // se houver >1 imagens, cria miniaturas com as imagens *exceto* a principal
+    if (imagens.length > 1) {
+      imagens.slice(1).forEach(src => {
+        const t = document.createElement("img");
+        t.className = "miniatura";
+        t.src = src;
+        t.alt = `Variação ${p.nome || ""}`;
+
+        // ao clicar: swap entre thumb e imagem principal
+        t.addEventListener("click", () => {
+          const tmp = mainImg.src;
+          mainImg.src = t.src;
+          t.src = tmp;
+        });
+
+        thumbsWrapper.appendChild(t);
+      });
+    }
+
+    container.appendChild(mainImg);
+    container.appendChild(thumbsWrapper);
+
+    // infos do produto
+    const info = document.createElement("div");
+    info.className = "produto-info";
+    info.innerHTML = `
+      <h3>${p.nome || ""}</h3>
+      <p>${p.descricao || ""}</p>
       <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
-      <button type="button"
-        onclick="adicionarAoCarrinho('${p._id}', '${(p.nome||'').replace(/'/g,"\\'")}', ${Number(p.preco||0)})">
-        Adicionar ao carrinho
-      </button>
     `;
-    lista.appendChild(div);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Adicionar ao carrinho";
+    btn.addEventListener("click", () =>
+      adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0))
+    );
+
+    info.appendChild(btn);
+
+    card.appendChild(container);
+    card.appendChild(info);
+
+    lista.appendChild(card);
   });
 }
+
+
 
 // Busca dinâmica
 if (inputBusca) {
@@ -177,38 +248,205 @@ function atualizarCarrinho() {
 
   total.textContent = `Total: R$ ${soma.toFixed(2)}`;
 }
+// ------------------- Função calcularFrete -------------------
+// ------------------- Função calcularFrete -------------------
+async function calcularFrete() {
+  const cepInput = document.querySelector("#checkout-cep");
+  const cepDestino = cepInput ? cepInput.value.trim() : "";
 
-// ------------------- Checkout / Pix -------------------
+  const tipoEntregaInput = document.querySelector("input[name=metodoEntrega]:checked");
+  const tipoEntrega = tipoEntregaInput ? tipoEntregaInput.value : "delivery";
+
+  try {
+    if (tipoEntrega === "retirada") {
+      const totalProdutos = carrinho.reduce(
+        (acc, item) => acc + item.preco * item.quantidade,
+        0
+      );
+
+      const resumoTotal = document.querySelector("#resumo-total");
+      if (resumoTotal) {
+        resumoTotal.innerHTML = `
+          <p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>
+          <p>Frete: <strong>R$ 0,00</strong></p>
+          <hr>
+          <p>Total: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>
+        `;
+      }
+
+      return { frete: 0, prazo: 0, totalGeral: totalProdutos };
+    }
+
+    if (tipoEntrega === "delivery" && (!cepDestino || cepDestino.length < 8)) {
+      console.warn("CEP não informado ou inválido, aguardando usuário digitar...");
+      return;
+    }
+
+    let pesoTotal = 0;
+    carrinho.forEach(item => {
+      const produto = produtosCarregados.find(p => p._id === item.id);
+      const peso = produto?.peso || 0.5;
+      pesoTotal += peso * item.quantidade;
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/frete/correios`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cepDestino, peso: pesoTotal.toFixed(2) }),
+    });
+
+    if (!response.ok) throw new Error("Falha ao buscar frete");
+
+    const { frete, prazo } = await response.json();
+    const totalProdutos = carrinho.reduce(
+      (acc, item) => acc + item.preco * item.quantidade,
+      0
+    );
+    const totalGeral = totalProdutos + frete;
+
+    const resumoTotal = document.querySelector("#resumo-total");
+    if (resumoTotal) {
+      resumoTotal.innerHTML = `
+        <p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>
+        <p>Frete: <strong>R$ ${frete.toFixed(2)}</strong> ${prazo > 0 ? `(Prazo: ${prazo} dias)` : ""}</p>
+        <hr>
+        <p>Total: <strong>R$ ${totalGeral.toFixed(2)}</strong></p>
+      `;
+    }
+
+    return { frete, prazo, totalGeral };
+
+  } catch (error) {
+    console.error("Erro ao calcular frete:", error);
+    const resumoTotal = document.querySelector("#resumo-total");
+    if (resumoTotal) {
+      resumoTotal.innerHTML =
+        "<p style='color:red'>Erro ao calcular frete, verifique o CEP.</p>";
+    }
+  }
+}
+
+
+
+
+document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {
+  input.addEventListener("change", calcularFrete);
+});
+
+
+document.querySelector("#checkout-cep").addEventListener("blur", calcularFrete);
+
+// ------------------- Finalizar Compra -------------------
 async function finalizarCompra() {
   try {
+    // 1. Calcula frete
+    const resumoFrete = await calcularFrete();
+    if (!resumoFrete) {
+      document.querySelector("#resumo-total").innerHTML =
+        "<p style='color:red'>Não foi possível calcular o frete. Verifique os dados e tente novamente.</p>";
+      return;
+    }
+
+    const { frete, prazo, totalGeral } = resumoFrete;
+    const metodoEntrega = document.querySelector("input[name=metodoEntrega]:checked").value;
+
+    // 2. Monta endereço apenas se for delivery
+    let endereco = null;
+    if (metodoEntrega === "delivery") {
+      endereco = {
+        cep: document.querySelector("#checkout-cep").value,
+        rua: document.querySelector("#checkout-rua").value,
+        numero: document.querySelector("#checkout-numero").value,
+        bairro: document.querySelector("#checkout-bairro").value,
+        cidade: document.querySelector("#checkout-cidade").value,
+        estado: document.querySelector("#checkout-estado").value,
+        complemento: document.querySelector("#checkout-complemento").value,
+      };
+    }
+
+    // 3. Monta o payload completo
+    const payload = {
+      itens: carrinho,
+      email: document.querySelector("#checkout-email").value,
+      firstName: document.querySelector("#checkout-nome").value,
+      lastName: document.querySelector("#checkout-sobrenome").value,
+      frete,
+      prazo,
+      total: totalGeral,
+      metodoEntrega,
+      endereco,
+    };
+
+    // 4. Envia para o backend gerar Pix
     const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: "cliente@email.com",
-        firstName: "Fulano",
-        lastName: "Silva",
-        itens: carrinho.map(item => ({
-          nome: item.nome,
-          quantidade: item.quantidade,
-          preco: item.preco
-        }))
-      })
+      body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+      throw new Error("Falha ao iniciar checkout.");
+    }
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Erro no pagamento");
-    }
+    // 5. Exibe QR Code Pix no modal
+    abrirPixModal(data);
 
-    console.log("✅ Pagamento criado:", data);
-    abrirPixModal(data); // já abre o modal Pix se der certo
-
-  } catch (err) {
-    console.error("❌ Erro ao finalizar compra:", err);
+  } catch (error) {
+    console.error("Erro ao finalizar compra:", error);
+    document.querySelector("#resumo-total").innerHTML =
+      "<p style='color:red'>Erro ao finalizar compra. Tente novamente.</p>";
   }
 }
+
+
+
+// async function finalizarCompra() {
+//   try {
+//     // 1. Calcula frete antes de tudo
+//     const { frete, prazo, totalGeral } = await calcularFrete();
+
+//     console.log("Resumo do pedido:");
+//     console.log("Itens:", carrinho);
+//     console.log("Frete:", frete);
+//     console.log("Prazo:", prazo);
+//     console.log("Total geral:", totalGeral);
+
+//     // 2. Monta o payload para o backend
+//     const payload = {
+//       itens: carrinho,
+//       email: document.querySelector("#checkout-email").value,
+//       firstName: document.querySelector("#checkout-nome").value,
+//       lastName: document.querySelector("#checkout-sobrenome").value,
+//       frete,
+//       prazo,
+//       total: totalGeral,
+//     };
+//     // 3. Envia para o backend gerar o Pix
+//     const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(payload),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Falha ao iniciar checkout.");
+//     }
+
+//     const data = await response.json();
+
+//     // 4. Exibe QR Code / instruções Pix
+//     console.log("Resposta Pix:", data);
+//     alert("Pedido gerado com sucesso! Abra o Pix e finalize o pagamento.");
+//     // Aqui você pode atualizar seu modal com o QR Code vindo do backend
+
+//   } catch (error) {
+//     console.error("Erro ao finalizar compra:", error);
+//     alert("Erro ao finalizar compra, tente novamente.");
+//   }
+// }
+
 
 
 // ------------------- Modal Pix -------------------
@@ -303,5 +541,11 @@ function iniciarTimer(totalSegundos) {
   }, 1000);
 }
 
-
+// ------------------- Mostrar/ocultar endereço conforme método -------------------
+document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {
+  input.addEventListener("change", (e) => {
+    document.getElementById("endereco-entrega").style.display =
+      e.target.value === "delivery" ? "block" : "none";
+  });
+});
 
