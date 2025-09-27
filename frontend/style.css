@@ -140,11 +140,13 @@ body {
   width: 100%;
   max-width: 260px;
   height: 260px;
-  object-fit: cover;
+  object-fit: contain; /* Mostra a imagem inteira sem cortar */
+  background-color: #fff; /* opcional: adiciona fundo branco nas sobras */
   border-radius: 12px;
   border: 2px solid var(--cor-secundaria);
   transition: transform 0.3s;
 }
+
 
 .produto-card .produto-principal:hover {
   transform: scale(1.05);

@@ -47,18 +47,18 @@ function mostrarProdutos(produtos) {
     // aceita tanto o campo novo (imagens: [String]) quanto o antigo (imagem: String)
     let imagens = [];
 
-// se vier array (novo schema)
-if (Array.isArray(p.imagens) && p.imagens.length > 0) {
-  imagens = p.imagens.filter(Boolean);
-}
-// se vier string única (schema antigo)
-else if (typeof p.imagem === "string" && p.imagem.trim() !== "") {
-  imagens = [p.imagem];
-}
-// fallback
-else {
-  imagens = ["https://via.placeholder.com/300x300?text=Sem+imagem"];
-}
+    // Sempre transforma em array
+    if (Array.isArray(p.imagens) && p.imagens.length > 0) {
+      imagens = p.imagens;
+    } else if (p.imagem) {
+      imagens = [p.imagem]; // converte string única em array
+    }
+    
+    // Se não tiver nenhuma imagem válida, usa placeholder
+    if (!imagens.length) {
+      imagens = ["https://via.placeholder.com/300x300?text=Sem+imagem"];
+    }
+    
 
 
     // card
