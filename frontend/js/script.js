@@ -507,39 +507,118 @@ function iniciarPollingStatus(paymentId) {
     try {
       const r = await fetch(`${API_BASE_URL}/api/checkout/status/${paymentId}`);
       const { status } = await r.json();
-  
-      statusEl.textContent = status === "pending" ? "Aguardando pagamento..." :
-                             status === "approved" ? "Pagamento confirmado! 🎉" :
-                             "Cobrança expirada ou rejeitada.";
-  
-      if (status === "approved" || status === "expired" || status === "rejected") {
+
+      console.log("Status do pagamento recebido:", status);
+
+      // Atualiza status no modal
+      statusEl.textContent =
+        status === "pending"  ? "Aguardando pagamento..." :
+        status === "approved" || status === "pago" ? "Pagamento confirmado! 🎉" :
+        status === "expired"  ? "Pagamento expirado." :
+        status === "rejected" ? "Pagamento rejeitado." :
+                                `Status: ${status}`;
+
+      // Quando a transação tem resposta final
+      if (status === "approved" || status === "pago" || status === "expired" || status === "rejected") {
         clearInterval(pollingInterval);
-        if (status === "approved") {
+
+        const modal = document.getElementById("pix-modal");
+        const content = modal.querySelector(".modal-content");
+
+        if (status === "approved" || status === "pago") {
           limparCarrinho();
-          window.location.href = "/sucesso.html";
+          content.innerHTML = `
+            <h2>🎉 Obrigado pela sua compra!</h2>
+            <p>Seu pagamento foi confirmado com sucesso.</p>
+            <p>Enviaremos os detalhes do seu pedido para o seu e-mail.</p>
+            <p class="fechamento-automatico">
+              Esta janela será fechada automaticamente em <span id="fechar-contador">30</span>s.
+            </p>
+            <a href="index.html" class="btn btn-primary">Voltar para a loja</a>
+            <button class="btn btn-secondary" onclick="fecharPixModal()">Fechar agora</button>
+          `;
+
+          // contador regressivo
+          let segundosRestantes = 30;
+          const contadorEl = document.getElementById("fechar-contador");
+          const intervalId = setInterval(() => {
+            segundosRestantes--;
+            if (contadorEl) contadorEl.textContent = segundosRestantes;
+            if (segundosRestantes <= 0) {
+              clearInterval(intervalId);
+              fecharPixModal();
+            }
+          }, 1000);
+        }
+
+        if (status === "expired") {
+          content.innerHTML = `
+            <h2>⏳ Pagamento expirado</h2>
+            <p>O prazo para pagamento via Pix terminou.</p>
+            <p>Por favor, tente refazer sua compra.</p>
+            <a href="index.html" class="btn btn-primary">Voltar para a loja</a>
+            <button class="btn btn-secondary" onclick="fecharPixModal()">Fechar</button>
+          `;
+        }
+
+        if (status === "rejected") {
+          content.innerHTML = `
+            <h2>❌ Pagamento rejeitado</h2>
+            <p>O pagamento não foi autorizado ou foi cancelado.</p>
+            <p>Você pode tentar novamente ou escolher outro método de pagamento.</p>
+            <a href="index.html" class="btn btn-primary">Voltar para a loja</a>
+            <button class="btn btn-secondary" onclick="fecharPixModal()">Fechar</button>
+          `;
         }
       }
     } catch (err) {
       console.error("Erro ao verificar status Pix:", err);
     }
   }, 4000);
-  
 }
+
+
+async function verificarPagamento(pedidoId) {
+  try {
+    const res = await fetch(`/api/pedidos/${pedidoId}/status`);
+    const data = await res.json();
+    
+    if (data.status === "pago") {
+      // Fecha a modal do Pix
+      const modalPix = document.getElementById("pix-modal");
+      if (modalPix) modalPix.style.display = "none";
+
+      // Para o timer
+      clearInterval(window.pixTimerId);
+
+      // Notifica o usuário
+      alert("Pagamento confirmado! 🎉");
+    } else {
+      // Continua verificando a cada 5 segundos
+      setTimeout(() => verificarPagamento(pedidoId), 5000);
+    }
+  } catch (err) {
+    console.error("Erro ao verificar pagamento", err);
+  }
+}
+
 
 function iniciarTimer(totalSegundos) {
   const el = document.getElementById("pix-timer");
   let s = totalSegundos;
 
-  const id = setInterval(() => {
+  // guarda no escopo global
+  window.pixTimerId = setInterval(() => {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const ss = (s % 60).toString().padStart(2, "0");
 
-    el.textContent = `⏳ Pagamento expira em ${m}:${ss}`;
-
-    if (s <= 0) clearInterval(id);
-    s--;
+    el.textContent = `${m}:${ss}`;
+    if (s-- <= 0) {
+      clearInterval(window.pixTimerId);
+    }
   }, 1000);
 }
+
 
 // ------------------- Mostrar/ocultar endereço conforme método -------------------
 document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {

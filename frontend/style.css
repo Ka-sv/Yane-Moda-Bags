@@ -250,6 +250,19 @@ body {
   cursor: pointer;
 }
 
+/* Estilo do aviso de fechamento automático */
+.fechamento-automatico {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+.fechamento-automatico span {
+  font-weight: bold;
+  color: #d9534f; 
+}
+
 /* Lista carrinho */
 #lista-carrinho {
   list-style: none;
@@ -461,3 +474,5 @@ body {
   .footer-social a img { width: 24px; height: 24px; }
   #pix-qr { max-width: 160px; }
 }
+
+
