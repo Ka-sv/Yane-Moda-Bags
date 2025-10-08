@@ -11,15 +11,29 @@ async function carregarPedidosPagos() {
   
       pedidos.forEach(p => {
         const tr = document.createElement("tr");
+        const itens = (p.itens || [])
+          .map(i => `${i.nome} (x${i.quantidade})`)
+          .join(", ");
+      
+        const endereco = p.endereco
+          ? `${p.endereco.rua || ""}, ${p.endereco.numero || ""} - ${p.endereco.bairro || ""}, ${p.endereco.cidade || ""} - ${p.endereco.estado || ""} (${p.endereco.cep || ""})`
+          : "Retirada na loja";
+      
+        const metodo = p.metodoEntrega === "delivery" ? "Entrega" : "Retirada";
+      
         tr.innerHTML = `
           <td>${p.firstName || ""} ${p.lastName || ""}</td>
           <td>${p.email || ""}</td>
-          <td>${(p.itens || []).map(i => `${i.nome} (x${i.quantidade})`).join(", ")}</td>
+          <td>${itens}</td>
           <td>R$ ${(p.total || 0).toFixed(2)}</td>
+          <td>${metodo}</td>
+          <td>${endereco}</td>
+          <td>${p.statusEntrega || "Pendente"}</td>
           <td>${new Date(p.createdAt).toLocaleString("pt-BR")}</td>
         `;
+      
         tabela.appendChild(tr);
-      });
+      });      
     } catch (err) {
       console.error("❌ Erro ao carregar pedidos pagos:", err);
     }
