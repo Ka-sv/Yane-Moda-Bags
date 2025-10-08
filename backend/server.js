@@ -28,23 +28,22 @@ const allowedOrigins = [
 ];
 
 // ------------------- CORS -------------------
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin");
-  }
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn("❌ Origem não permitida pelo CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-
-  next();
-});
-
-// Permitir JSON
-app.use(express.json());
+app.use(cors(corsOptions));
 
 // ------------------- ROTAS -------------------
 app.use("/api/produtos", produtoRoutes);
