@@ -35,20 +35,29 @@ router.post("/pix", async (req, res) => {
     const data = await response.json();
     if (!response.ok) return res.status(response.status).json(data);
 
-    // 👉 Salva o pedido no Mongo
-    const novoPedido = new Pedido({
-      itens,
-      email,
-      firstName,
-      lastName,
-      frete,
-      prazo,
-      metodoEntrega,
-      endereco,
-      total: transaction_amount,
-      status: "pending",
-      payment_id: data.id
-    });
+  
+console.log("📦 Dados recebidos no checkout:", {
+  metodoEntrega,
+  endereco,
+  total,
+});
+
+// Cria o novo pedido
+const novoPedido = new Pedido({
+  itens,
+  email,
+  firstName,
+  lastName,
+  frete,
+  prazo,
+  metodoEntrega,
+  endereco: endereco || null, 
+  total: total || transaction_amount, 
+  status: "pending",
+  statusEntrega: "Pendente", 
+  payment_id: data.id,
+});
+
     await novoPedido.save();
 
     res.json({
