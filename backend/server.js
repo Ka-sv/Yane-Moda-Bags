@@ -21,7 +21,10 @@ const app = express();
 const allowedOrigins = [
   "https://yane-moda-bags.vercel.app",
   "http://127.0.0.1:5500",
-  "http://localhost:5000"
+  "http://localhost:5000",
+  "http://www.yaneloja.com.br",
+  "https://www.yaneloja.com.br"
+
 ];
 
 // ------------------- CORS -------------------
