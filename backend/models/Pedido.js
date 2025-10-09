@@ -23,7 +23,7 @@ const PedidoSchema = new mongoose.Schema(
     payment_id: { type: String },
 
     // 🚚 entrega
-    enderecoEntrega: {
+    endereco: {
       cep: { type: String },
       rua: { type: String },
       numero: { type: String },
@@ -46,5 +46,4 @@ const PedidoSchema = new mongoose.Schema(
   { timestamps: true } // createdAt e updatedAt automáticos
 );
 
-// 👇 se já existir, reutiliza; senão cria
 export default mongoose.models.Pedido || mongoose.model("Pedido", PedidoSchema);

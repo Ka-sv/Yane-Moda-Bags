@@ -5,7 +5,20 @@
     { "src": "frontend/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "server.js" }, 
-    { "src": "/(.*)", "dest": "frontend/$1" }
+    {
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/",
+      "has": [
+        { "type": "host", "value": "admin.yaneloja.com.br" }
+      ],
+      "dest": "frontend/pedidos.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
   ]
 }
