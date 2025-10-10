@@ -43,6 +43,7 @@ console.log("📦 Dados recebidos no checkout:", {
 });
 
 // Cria o novo pedido
+const statusEntregaInicial = metodoEntrega === "retirada" ? "em preparo" : "pendente";
 const novoPedido = new Pedido({
   itens,
   email,
@@ -54,7 +55,7 @@ const novoPedido = new Pedido({
   endereco: endereco || null, 
   total: total || transaction_amount, 
   status: "pending",
-  statusEntrega: "Pendente", 
+  statusEntrega: statusEntregaInicial,
   payment_id: data.id,
 });
 
