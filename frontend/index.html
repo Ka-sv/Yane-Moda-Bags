@@ -86,7 +86,7 @@
         <div id="endereco-entrega" style="display:none; margin-top: 10px;">
           <h4>Endereço de entrega</h4>
           <input type="text" id="checkout-cep" placeholder="CEP" required>
-          <input type="text" id="checkout-rua" placeholder="Rua" required>
+          <input type="text" id="checkout-rua" placeholder="Rua/" required>
           <input type="text" id="checkout-numero" placeholder="Número" required>
           <input type="text" id="checkout-bairro" placeholder="Bairro" required>
           <input type="text" id="checkout-cidade" placeholder="Cidade" required>
@@ -95,6 +95,19 @@
         </div>
       </div>
 
+            <!-- Campo de cupom -->
+          <div class="checkout-cupom">
+            <label for="cupom-input">Possui um cupom de desconto?</label>
+            <div class="cupom-linha">
+              <input type="text" id="cupom-input" placeholder="Ex: FRETEGRATIS ou DESCONTO15">
+              <button type="button" id="aplicar-cupom">Aplicar</button>
+            </div>
+            <p id="cupom-feedback"></p>
+          </div>
+
+
+
+    
       <div class="cart-actions">
         <button class="btn btn-secondary" id="limpar-carrinho">Limpar carrinho</button>
         <button class="btn btn-primary" id="finalizar-compra">Finalizar compra</button>

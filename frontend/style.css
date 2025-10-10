@@ -446,6 +446,15 @@ body {
 }
 
 @media (max-width: 600px) {
+
+  .cupom-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #aplicar-cupom {
+    width: 100%;
+  }
   .header { flex-wrap: wrap; gap: 10px; padding: 10px 15px; }
   .logo img { height: 70px; }
 
@@ -459,6 +468,7 @@ body {
     background: #fff;
     color: #000;
   }
+  
 
   #produtos { padding: 15px 10px; margin: 20px auto; }
   #produtos h2 { font-size: 1.4rem; }
@@ -473,6 +483,8 @@ body {
   .footer-contact p { font-size: 0.8rem; }
   .footer-social a img { width: 24px; height: 24px; }
   #pix-qr { max-width: 160px; }
+
+  
 }
 
 
@@ -543,4 +555,51 @@ body {
   line-height: 1.4;
   margin-top: 10px;
   display: none;
+}
+
+/* =========================================================
+   CUPOM DE DESCONTO
+========================================================= */
+.checkout-cupom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cupom-linha {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#cupom-input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid var(--cor-secundaria);
+  border-radius: 8px;
+  background: #222;
+  color: var(--cor-claro);
+  font-size: 1rem;
+}
+
+#aplicar-cupom {
+  background: var(--cor-secundaria);
+  color: var(--cor-destaque);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+#aplicar-cupom:hover {
+  background: var(--cor-destaque);
+  color: var(--cor-secundaria);
+  transform: scale(1.05);
+}
+
+#cupom-feedback {
+  font-size: 0.9rem;
+  color: var(--cor-destaque);
 }

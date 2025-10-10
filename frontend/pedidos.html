@@ -2,29 +2,67 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Pedidos Pagos</title>
+  <title>Painel Administrativo</title>
   <link rel="stylesheet" href="./stylePedidos.css">
 </head>
 <body>
-  <h1>📦 Pedidos Pagos</h1>
+  <h1>🛍 Painel Administrativo</h1>
 
-  <table class="tabela-pedidos">
-    <thead>
-      <tr>
-        <th>Cliente</th>
-        <th>Email</th>
-        <th>Itens</th>
-        <th>Total</th>
-        <th>Entrega</th>
-        <th>Endereço</th>
-        <th>Status Entrega</th>
-        <th>Data</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-pedidos"></tbody>
-  </table>
+  <nav>
+    <button id="tab-pedidos">📦 Pedidos</button>
+    <button id="tab-cupons">🎟 Cupons</button>
+  </nav>
 
-  
+  <!-- Seção de Pedidos -->
+  <section id="secao-pedidos">
+    <h2>Pedidos Pagos</h2>
+    <table class="tabela-pedidos">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Email</th>
+          <th>Itens</th>
+          <th>Total</th>
+          <th>Cupom</th>
+          <th>Entrega</th>
+          <th>Endereço</th>
+          <th>Status Entrega</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-pedidos"></tbody>
+    </table>
+  </section>
+
+  <!-- Seção de Cupons -->
+  <section id="secao-cupons" style="display:none;">
+    <h2>Gerenciar Cupons</h2>
+
+    <form id="form-cupom">
+      <input type="text" id="codigo" placeholder="Código" required>
+      <select id="tipo" required>
+        <option value="percentual">Desconto (%)</option>
+        <option value="frete">Frete Grátis</option>
+      </select>
+      <input type="number" id="valor" placeholder="Valor" required>
+      <input type="text" id="descricao" placeholder="Descrição (opcional)">
+      <button type="submit">➕ Criar Cupom</button>
+    </form>
+
+    <table class="tabela-cupons">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Tipo</th>
+          <th>Valor</th>
+          <th>Ativo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-cupons"></tbody>
+    </table>
+  </section>
+
   <script src="/frontend/js/scriptAdm.js"></script>
 </body>
 </html>

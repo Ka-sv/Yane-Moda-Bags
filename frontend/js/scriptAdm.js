@@ -38,6 +38,7 @@ async function carregarPedidosPagos() {
           <td>${p.email || ""}</td>
           <td>${itens}</td>
           <td>R$ ${(p.total || 0).toFixed(2)}</td>
+          <td>${p.cupom || "—"}</td>
           <td>${metodo}</td>
           <td>${endereco}</td>
           <td>${p.statusEntrega || "Pendente"}</td>
@@ -56,3 +57,86 @@ async function carregarPedidosPagos() {
     carregarPedidosPagos();
   }
   
+// ------------------- GERENCIAMENTO DE CUPONS -------------------
+const API_BASE_URL = "https://yane-moda-bags.onrender.com"; // ajuste se necessário
+
+document.getElementById("tab-pedidos").addEventListener("click", () => {
+  document.getElementById("secao-pedidos").style.display = "block";
+  document.getElementById("secao-cupons").style.display = "none";
+});
+
+document.getElementById("tab-cupons").addEventListener("click", () => {
+  document.getElementById("secao-pedidos").style.display = "none";
+  document.getElementById("secao-cupons").style.display = "block";
+  carregarCupons();
+});
+
+// Carregar cupons existentes
+async function carregarCupons() {
+  const tabela = document.getElementById("tabela-cupons");
+  tabela.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/cupons`);
+    if (!res.ok) throw new Error("Erro ao carregar cupons");
+    const cupons = await res.json();
+
+    cupons.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.codigo}</td>
+        <td>${c.tipo}</td>
+        <td>${c.valor}${c.tipo === "percentual" ? "%" : ""}</td>
+        <td>${c.ativo ? "✅" : "❌"}</td>
+        <td>
+          ${c.ativo
+            ? `<button onclick="desativarCupom('${c._id}')">Desativar</button>`
+            : `<span>Inativo</span>`
+          }
+        </td>
+      `;
+      tabela.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("❌ Erro ao carregar cupons:", err);
+  }
+}
+
+// Criar novo cupom
+document.getElementById("form-cupom").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const novo = {
+    codigo: document.getElementById("codigo").value.toUpperCase(),
+    tipo: document.getElementById("tipo").value,
+    valor: Number(document.getElementById("valor").value),
+    descricao: document.getElementById("descricao").value
+  };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/cupons`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(novo),
+    });
+    if (!res.ok) throw new Error("Erro ao criar cupom");
+    alert("Cupom criado com sucesso!");
+    e.target.reset();
+    carregarCupons();
+  } catch (err) {
+    alert("Erro ao salvar cupom.");
+    console.error(err);
+  }
+});
+
+// Desativar cupom
+async function desativarCupom(id) {
+  if (!confirm("Deseja realmente desativar este cupom?")) return;
+  try {
+    await fetch(`${API_BASE_URL}/api/cupons/${id}/desativar`, { method: "PATCH" });
+    carregarCupons();
+  } catch (err) {
+    alert("Erro ao desativar cupom.");
+    console.error(err);
+  }
+}

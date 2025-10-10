@@ -42,8 +42,13 @@ const PedidoSchema = new mongoose.Schema(
       enum: ["pendente", "em preparo", "saiu para entrega", "entregue", "cancelado"],
       default: "pendente",
     },
+
+    // 🎟️ Cupom de desconto
+    cupom: { type: String, default: null },
+    descontoAplicado: { type: Number, default: 0 }, 
+    freteGratis: { type: Boolean, default: false }, 
   },
-  { timestamps: true } // createdAt e updatedAt automáticos
+  { timestamps: true } 
 );
 
 export default mongoose.models.Pedido || mongoose.model("Pedido", PedidoSchema);

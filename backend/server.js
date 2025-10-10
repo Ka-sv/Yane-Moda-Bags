@@ -11,6 +11,8 @@ import produtoRoutes from "./routes/routesProdutos.js";
 import pedidosRoutes from "./routes/routesPedidos.js";
 import checkoutRoutes from "./routes/routesCheckout.js";
 import webhookRoutesMp from "./routes/routesWebhookMp.js";
+import cupomRoutes from "./routes/routesCupom.js";
+
 
 // Modelo
 import Pedido from "./models/Pedido.js";
@@ -45,12 +47,16 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(express.json());
+
 
 // ------------------- ROTAS -------------------
 app.use("/api/produtos", produtoRoutes);
 app.use("/api/pedidos", pedidosRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/mp/webhook", webhookRoutesMp);
+app.use("/api/cupons", cupomRoutes);
+
 
 console.log("✅ Rotas de pedidos ativas em /api/pedidos");
 
