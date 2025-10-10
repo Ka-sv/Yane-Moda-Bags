@@ -623,8 +623,12 @@ function iniciarTimer(totalSegundos) {
 // ------------------- Mostrar/ocultar endereço conforme método -------------------
 document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {
   input.addEventListener("change", (e) => {
-    document.getElementById("endereco-entrega").style.display =
-      e.target.value === "delivery" ? "block" : "none";
+    const isDelivery = e.target.value === "delivery";
+    const enderecoDiv = document.getElementById("endereco-entrega");
+    const infoRetirada = document.getElementById("info-retirada");
+
+    enderecoDiv.style.display = isDelivery ? "block" : "none";
+    infoRetirada.style.display = isDelivery ? "none" : "block";
   });
 });
 

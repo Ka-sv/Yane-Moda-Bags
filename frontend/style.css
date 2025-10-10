@@ -476,3 +476,71 @@ body {
 }
 
 
+/* =========================================================
+   CHECKOUT FORM / INPUTS
+========================================================= */
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #1c1c1c;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+.checkout-form label,
+.checkout-form p,
+.checkout-form h4 {
+  font-weight: 600;
+  color: var(--cor-destaque);
+}
+
+.checkout-form input[type="text"],
+.checkout-form input[type="email"],
+.checkout-form input[type="number"] {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--cor-secundaria);
+  border-radius: 8px;
+  background: #222;
+  color: var(--cor-claro);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.checkout-form input:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 5px var(--cor-destaque);
+  outline: none;
+}
+
+.checkout-entrega label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 15px;
+  cursor: pointer;
+  color: var(--cor-texto);
+}
+
+.checkout-entrega input[type="radio"] {
+  accent-color: var(--cor-destaque);
+  transform: scale(1.2);
+}
+
+#endereco-entrega input {
+  margin-bottom: 10px;
+}
+
+/* Mensagem quando o método for retirada */
+#info-retirada {
+  background: #0d7377;
+  color: var(--cor-claro);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-top: 10px;
+  display: none;
+}

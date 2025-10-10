@@ -1,3 +1,15 @@
+// ------------------- AUTENTICAÇÃO SIMPLES -------------------
+const senhaCorreta = "minhasenha123"; // defina sua senha aqui
+const senhaDigitada = localStorage.getItem("senhaAdmin") || prompt("Digite a senha de administrador:");
+
+if (senhaDigitada !== senhaCorreta) {
+  alert("Senha incorreta! Acesso negado.");
+  window.location.href = "https://yaneloja.com.br"; // redireciona pro site público
+} else {
+  localStorage.setItem("senhaAdmin", senhaDigitada); // guarda para não pedir de novo
+}
+
+
 async function carregarPedidosPagos() {
     try {
       const response = await fetch("https://yane-moda-bags.onrender.com/api/pedidos/pagos");
