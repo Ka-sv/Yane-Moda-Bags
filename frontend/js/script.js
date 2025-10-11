@@ -399,11 +399,17 @@ async function calcularFrete() {
         valorDesconto = descontoAplicado;
       }
       
-      if (cupomDados?.valorMinimo && totalProdutos < cupomDados.valorMinimo) {
-        feedback.textContent = `Valor mínimo de R$ ${cupomDados.valorMinimo.toFixed(2)} para usar este cupom.`;
-        feedback.style.color = "orange";
-        return;
-      }
+      // Só exige valor mínimo se o cupom NÃO for de frete grátis
+if (
+  cupomDados?.tipo !== "frete" &&
+  cupomDados?.valorMinimo &&
+  totalProdutos < cupomDados.valorMinimo
+) {
+  feedback.textContent = `Valor mínimo de R$ ${cupomDados.valorMinimo.toFixed(2)} para usar este cupom.`;
+  feedback.style.color = "orange";
+  return;
+}
+
       
     
       totalComCupom -= valorDesconto;

@@ -106,10 +106,15 @@ async function carregarCupons() {
 document.getElementById("form-cupom").addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const tipo = document.getElementById("tipo").value;
+  const valorInput = document.getElementById("valor").value;
+  
   const novo = {
     codigo: document.getElementById("codigo").value.toUpperCase(),
     tipo: document.getElementById("tipo").value,
-    valor: Number(document.getElementById("valor").value),
+    
+    valor: tipo === "frete" ? 0 : (valorInput ? Number(valorInput) : 0),
+
     valorMinimo: Number(document.getElementById("valorMinimo").value) || 0,
     descricao: document.getElementById("descricao").value
   };
