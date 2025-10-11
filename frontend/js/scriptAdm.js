@@ -1,13 +1,36 @@
 // ------------------- AUTENTICAÇÃO SIMPLES -------------------
-const senhaCorreta = "minhasenha123"; // defina sua senha aqui
-const senhaDigitada = localStorage.getItem("senhaAdmin") || prompt("Digite a senha de administrador:");
 
-if (senhaDigitada !== senhaCorreta) {
-  alert("Senha incorreta! Acesso negado.");
-  window.location.href = "https://yaneloja.com.br"; // redireciona pro site público
-} else {
-  localStorage.setItem("senhaAdmin", senhaDigitada); // guarda para não pedir de novo
-}
+(async () => {
+  const senhaDigitada = localStorage.getItem("senhaAdmin") || prompt("Digite a senha de administrador:");
+
+  if (!senhaDigitada) {
+    alert("Acesso negado. Nenhuma senha informada.");
+    window.location.href = "https://yaneloja.com.br";
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`${API_BASE_URL}/api/auth/admin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ senha: senhaDigitada }),
+    });
+
+    const data = await resposta.json();
+
+    if (data.ok) {
+      localStorage.setItem("senhaAdmin", senhaDigitada);
+      console.log("✅ Acesso administrativo liberado");
+    } else {
+      alert("Senha incorreta! Acesso negado.");
+      window.location.href = "https://yaneloja.com.br";
+    }
+  } catch (error) {
+    console.error("Erro ao verificar senha de admin:", error);
+    alert("Erro de conexão. Tente novamente mais tarde.");
+    window.location.href = "https://yaneloja.com.br";
+  }
+})();
 
 
 async function carregarPedidosPagos() {
