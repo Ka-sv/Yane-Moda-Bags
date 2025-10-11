@@ -338,16 +338,35 @@ async function calcularFrete() {
         totalComCupom -= valorDesconto;
       }
 
-      const resumoTotal = document.querySelector("#resumo-total");
-      if (resumoTotal) {
-        resumoTotal.innerHTML = `
-          <p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>
-          <p>Frete: <strong>R$ 0,00</strong></p>
-          ${descontoAplicado > 0 ? `<p>Desconto: <strong>−${descontoAplicado}%</strong></p>` : ""}
-          <hr>
-          <p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>
-        `;
-      }
+     // Atualiza visualmente o resumo com mais detalhes
+const resumoTotal = document.querySelector("#resumo-total");
+if (resumoTotal) {
+  const linhas = [];
+
+  // Produtos
+  linhas.push(`<p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>`);
+
+  // Frete
+  if (freteGratisAtivo) {
+    linhas.push(`<p>Frete: <strong>R$ 0,00</strong> (Frete grátis aplicado)</p>`);
+  } else {
+    linhas.push(`<p>Frete: <strong>R$ ${frete.toFixed(2)}</strong> ${prazo > 0 ? `(Prazo: ${prazo} dias)` : ""}</p>`);
+  }
+
+  // Desconto fixo ou percentual
+  if (cupomDados?.tipo === "fixo" && descontoAplicado > 0) {
+    linhas.push(`<p>Desconto: <strong>−R$ ${descontoAplicado.toFixed(2)}</strong></p>`);
+  } else if (cupomDados?.tipo === "percentual" && descontoAplicado > 0) {
+    linhas.push(`<p>Desconto: <strong>−${descontoAplicado}%</strong></p>`);
+  }
+
+  // Total final
+  linhas.push("<hr>");
+  linhas.push(`<p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>`);
+
+  resumoTotal.innerHTML = linhas.join("");
+}
+
 
       return { frete: 0, prazo: 0, totalGeral: totalComCupom };
     }

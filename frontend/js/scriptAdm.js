@@ -58,7 +58,23 @@ async function carregarPedidosPagos() {
   }
   
 // ------------------- GERENCIAMENTO DE CUPONS -------------------
-const API_BASE_URL = "https://yane-moda-bags.onrender.com"; // ajuste se necessário
+const API_BASE_URL = "https://yane-moda-bags.onrender.com"; 
+
+
+
+const tipoSelect = document.getElementById("tipo");
+const valorInput = document.getElementById("valor");
+
+tipoSelect.addEventListener("change", () => {
+  if (tipoSelect.value === "frete") {
+    valorInput.value = "";
+    valorInput.disabled = true;
+    valorInput.placeholder = "Não aplicável (Frete Grátis)";
+  } else {
+    valorInput.disabled = false;
+    valorInput.placeholder = "Valor";
+  }
+});
 
 document.getElementById("tab-pedidos").addEventListener("click", () => {
   document.getElementById("secao-pedidos").style.display = "block";
@@ -108,7 +124,7 @@ document.getElementById("form-cupom").addEventListener("submit", async (e) => {
 
   const tipo = document.getElementById("tipo").value;
   const valorInput = document.getElementById("valor").value;
-  
+
   const novo = {
     codigo: document.getElementById("codigo").value.toUpperCase(),
     tipo: document.getElementById("tipo").value,
