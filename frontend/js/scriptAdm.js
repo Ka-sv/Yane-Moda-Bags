@@ -110,9 +110,10 @@ document.getElementById("form-cupom").addEventListener("submit", async (e) => {
     codigo: document.getElementById("codigo").value.toUpperCase(),
     tipo: document.getElementById("tipo").value,
     valor: Number(document.getElementById("valor").value),
+    valorMinimo: Number(document.getElementById("valorMinimo").value) || 0,
     descricao: document.getElementById("descricao").value
   };
-
+  
   try {
     const res = await fetch(`${API_BASE_URL}/api/cupons`, {
       method: "POST",

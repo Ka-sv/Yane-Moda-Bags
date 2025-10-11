@@ -42,8 +42,10 @@
       <input type="text" id="codigo" placeholder="Código" required>
       <select id="tipo" required>
         <option value="percentual">Desconto (%)</option>
+        <option value="fixo">Desconto fixo (R$)</option>
         <option value="frete">Frete Grátis</option>
       </select>
+      <input type="number" id="valorMinimo" placeholder="Valor mínimo (opcional)">
       <input type="number" id="valor" placeholder="Valor" required>
       <input type="text" id="descricao" placeholder="Descrição (opcional)">
       <button type="submit">➕ Criar Cupom</button>

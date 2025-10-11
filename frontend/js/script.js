@@ -253,10 +253,11 @@ function atualizarCarrinho() {
 let cupomAtivo = null;
 let descontoAplicado = 0;
 let freteGratisAtivo = false;
+let cupomDados = null;
+
 
 document.getElementById("aplicar-cupom").addEventListener("click", aplicarCupom);
-
-function aplicarCupom() {
+async function aplicarCupom() {
   const input = document.getElementById("cupom-input");
   const feedback = document.getElementById("cupom-feedback");
   const codigo = input.value.trim().toUpperCase();
@@ -267,76 +268,54 @@ function aplicarCupom() {
     return;
   }
 
-  // 🔹 Aqui você define os cupons disponíveis
-  async function aplicarCupom() {
-    const input = document.getElementById("cupom-input");
-    const feedback = document.getElementById("cupom-feedback");
-    const codigo = input.value.trim().toUpperCase();
-  
-    if (!codigo) {
-      feedback.textContent = "Digite um código de cupom válido.";
-      feedback.style.color = "orange";
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/cupons/${codigo}`);
+    if (!response.ok) {
+      const err = await response.json();
+      feedback.textContent = err.error || "Cupom inválido.";
+      feedback.style.color = "red";
       return;
     }
-  
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/cupons/${codigo}`);
-      if (!response.ok) {
-        const err = await response.json();
-        feedback.textContent = err.error || "Cupom inválido.";
-        feedback.style.color = "red";
-        return;
-      }
-  
-      const cupom = await response.json();
-      cupomAtivo = cupom.codigo;
-  
-      if (cupom.tipo === "frete") {
-        freteGratisAtivo = true;
-        descontoAplicado = 0;
-        feedback.textContent = "✅ Frete grátis aplicado!";
-      } else if (cupom.tipo === "percentual") {
-        descontoAplicado = cupom.valor;
-        freteGratisAtivo = false;
-        feedback.textContent = `✅ ${cupom.valor}% de desconto aplicado!`;
-      }
-  
-      feedback.style.color = "limegreen";
-      calcularFrete(); // atualiza o total com o cupom
-    } catch (err) {
-      feedback.textContent = "Erro ao validar o cupom. Tente novamente.";
-      feedback.style.color = "red";
-      console.error(err);
-    }
-  }
-  
-  const cupom = cupons[codigo];
-  if (!cupom) {
-    feedback.textContent = "Cupom inválido.";
-    feedback.style.color = "red";
-    return;
-  }
 
-  // Aplica o cupom
-  cupomAtivo = codigo;
-  if (cupom.tipo === "frete") {
-    freteGratisAtivo = true;
-    descontoAplicado = 0;
-    feedback.textContent = "✅ Frete grátis aplicado!";
-  } else if (cupom.tipo === "percentual") {
-    descontoAplicado = cupom.valor;
+    const cupom = await response.json();
+    cupomAtivo = cupom.codigo;
+    cupomDados = cupom; 
+
+
     freteGratisAtivo = false;
-    feedback.textContent = `✅ ${cupom.valor}% de desconto aplicado!`;
-  }
+    descontoAplicado = 0;
 
-  feedback.style.color = "limegreen";
-  calcularFrete(); // atualiza o resumo do total com o desconto
+    if (cupom.tipo === "frete") {
+      freteGratisAtivo = true;
+      feedback.textContent = "✅ Frete grátis aplicado!";
+    } 
+    else if (cupom.tipo === "percentual") {
+      descontoAplicado = cupom.valor;
+      feedback.textContent = `✅ ${cupom.valor}% de desconto aplicado!`;
+    } 
+    else if (cupom.tipo === "fixo") {
+      descontoAplicado = cupom.valor;
+      feedback.textContent = `✅ R$ ${cupom.valor.toFixed(2)} de desconto aplicado!`;
+    }
+
+    feedback.style.color = "limegreen";
+    calcularFrete(); // Atualiza o total
+  } catch (err) {
+    console.error("Erro ao validar o cupom:", err);
+    feedback.textContent = "Erro ao validar o cupom. Tente novamente.";
+    feedback.style.color = "red";
+  }
 }
 
+
+
+  // 🔹 Aqui você define os cupons disponíveis
+  
 // ------------------- Função calcularFrete -------------------
 // ------------------- Função calcularFrete -------------------
 // ------------------- Função calcularFrete (atualizada com cupom) -------------------
 async function calcularFrete() {
+  const feedback = document.getElementById("cupom-feedback");
   const cepInput = document.querySelector("#checkout-cep");
   const cepDestino = cepInput ? cepInput.value.trim() : "";
 
@@ -411,11 +390,25 @@ async function calcularFrete() {
       totalComCupom = totalProdutos; // ignora o frete
     }
 
-    if (descontoAplicado > 0) {
-      const valorDesconto = (totalComCupom * descontoAplicado) / 100;
+    if (cupomAtivo && descontoAplicado > 0) {
+      let valorDesconto = 0;
+    
+      if (cupomDados?.tipo === "percentual") {
+        valorDesconto = (totalProdutos * descontoAplicado) / 100;
+      } else if (cupomDados?.tipo === "fixo") {
+        valorDesconto = descontoAplicado;
+      }
+      
+      if (cupomDados?.valorMinimo && totalProdutos < cupomDados.valorMinimo) {
+        feedback.textContent = `Valor mínimo de R$ ${cupomDados.valorMinimo.toFixed(2)} para usar este cupom.`;
+        feedback.style.color = "orange";
+        return;
+      }
+      
+    
       totalComCupom -= valorDesconto;
     }
-
+    
     // Atualiza visualmente o resumo
     const resumoTotal = document.querySelector("#resumo-total");
     if (resumoTotal) {
