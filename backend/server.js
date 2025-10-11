@@ -48,7 +48,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-import { registrarRotasAdmin } from "./routesCheckout.js";
+import { registrarRotasAdmin } from "./routes/routesCheckout.js";
+
 registrarRotasAdmin(app);
 
 
