@@ -314,6 +314,7 @@ async function aplicarCupom() {
 // ------------------- Função calcularFrete -------------------
 // ------------------- Função calcularFrete -------------------
 // ------------------- Função calcularFrete (atualizada com cupom) -------------------
+// ------------------- Função calcularFrete (corrigida) -------------------
 async function calcularFrete() {
   const feedback = document.getElementById("cupom-feedback");
   const cepInput = document.querySelector("#checkout-cep");
@@ -322,70 +323,72 @@ async function calcularFrete() {
   const tipoEntregaInput = document.querySelector("input[name=metodoEntrega]:checked");
   const tipoEntrega = tipoEntregaInput ? tipoEntregaInput.value : "delivery";
 
+  console.log("🧾 Método de entrega selecionado:", tipoEntrega);
+
   try {
-    // 🏬 Caso: Retirada no local (sem frete)
+    // 🏬 Caso: Retirada no local (sem frete nem CEP)
     if (tipoEntrega === "retirada") {
       const totalProdutos = carrinho.reduce(
         (acc, item) => acc + item.preco * item.quantidade,
         0
       );
 
-      // aplica cupom se houver
       let totalComCupom = totalProdutos;
 
-      if (descontoAplicado > 0) {
-        const valorDesconto = (totalProdutos * descontoAplicado) / 100;
+      // aplica cupom se houver
+      if (cupomAtivo && descontoAplicado > 0) {
+        let valorDesconto = 0;
+
+        if (cupomDados?.tipo === "percentual") {
+          valorDesconto = (totalProdutos * descontoAplicado) / 100;
+        } else if (cupomDados?.tipo === "fixo") {
+          valorDesconto = descontoAplicado;
+        }
+
         totalComCupom -= valorDesconto;
       }
 
-     // Atualiza visualmente o resumo com mais detalhes
-const resumoTotal = document.querySelector("#resumo-total");
-if (resumoTotal) {
-  const linhas = [];
+      // Atualiza o resumo visual
+      const resumoTotal = document.querySelector("#resumo-total");
+      if (resumoTotal) {
+        const linhas = [];
 
-  // Produtos
-  linhas.push(`<p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>`);
+        linhas.push(`<p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>`);
+        linhas.push(`<p>Frete: <strong>R$ 0,00</strong></p>`);
 
-  // Frete
-  if (freteGratisAtivo) {
-    linhas.push(`<p>Frete: <strong>R$ 0,00</strong> (Frete grátis aplicado)</p>`);
-  } else {
-    linhas.push(`<p>Frete: <strong>R$ ${frete.toFixed(2)}</strong> ${prazo > 0 ? `(Prazo: ${prazo} dias)` : ""}</p>`);
-  }
+        if (cupomDados?.tipo === "percentual" && descontoAplicado > 0) {
+          const valorDesconto = (totalProdutos * descontoAplicado) / 100;
+          linhas.push(
+            `<p>Desconto (${descontoAplicado}%): <strong>−R$ ${valorDesconto.toFixed(2)}</strong></p>`
+          );
+        } else if (cupomDados?.tipo === "fixo" && descontoAplicado > 0) {
+          linhas.push(`<p>Desconto: <strong>−R$ ${descontoAplicado.toFixed(2)}</strong></p>`);
+        }
 
-  // Desconto fixo ou percentual
-  if (cupomDados?.tipo === "fixo" && descontoAplicado > 0) {
-    linhas.push(`<p>Desconto: <strong>−R$ ${descontoAplicado.toFixed(2)}</strong></p>`);
-  } else if (cupomDados?.tipo === "percentual" && descontoAplicado > 0) {
-    linhas.push(`<p>Desconto: <strong>−${descontoAplicado}%</strong></p>`);
-  }
+        linhas.push("<hr>");
+        linhas.push(`<p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>`);
+        resumoTotal.innerHTML = linhas.join("");
+      }
 
-  // Total final
-  linhas.push("<hr>");
-  linhas.push(`<p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>`);
-
-  resumoTotal.innerHTML = linhas.join("");
-}
-
-
+      // retorna dados simulando frete zerado
       return { frete: 0, prazo: 0, totalGeral: totalComCupom };
     }
 
-    // 🚚 Caso: Entrega — valida CEP antes
+    // 🚚 Caso: Entrega — precisa de CEP válido
     if (tipoEntrega === "delivery" && (!cepDestino || cepDestino.length < 8)) {
       console.warn("CEP não informado ou inválido, aguardando usuário digitar...");
       return;
     }
 
-    // calcula peso total
+    // Calcula peso total dos produtos
     let pesoTotal = 0;
     carrinho.forEach(item => {
       const produto = produtosCarregados.find(p => p._id === item.id);
-      const peso = produto?.peso || 0.5; // padrão 0.5kg se não definido
+      const peso = produto?.peso || 0.5;
       pesoTotal += peso * item.quantidade;
     });
 
-    // consulta API de frete
+    // Consulta API de frete
     const response = await fetch(`${API_BASE_URL}/api/frete/correios`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -400,55 +403,72 @@ if (resumoTotal) {
       0
     );
 
-    // Aplica promoções e cupons
     let frete = freteOriginal;
     let totalComCupom = totalProdutos + frete;
 
+    // Aplica cupom de frete grátis
     if (freteGratisAtivo) {
       frete = 0;
-      totalComCupom = totalProdutos; // ignora o frete
+      totalComCupom = totalProdutos;
     }
 
+    // Aplica cupom de desconto (fixo ou percentual)
     if (cupomAtivo && descontoAplicado > 0) {
       let valorDesconto = 0;
-    
+
       if (cupomDados?.tipo === "percentual") {
         valorDesconto = (totalProdutos * descontoAplicado) / 100;
       } else if (cupomDados?.tipo === "fixo") {
         valorDesconto = descontoAplicado;
       }
-      
-      // Só exige valor mínimo se o cupom NÃO for de frete grátis
-if (
-  cupomDados?.tipo !== "frete" &&
-  cupomDados?.valorMinimo &&
-  totalProdutos < cupomDados.valorMinimo
-) {
-  feedback.textContent = `Valor mínimo de R$ ${cupomDados.valorMinimo.toFixed(2)} para usar este cupom.`;
-  feedback.style.color = "orange";
-  return;
-}
 
-      
-    
+      // Se houver valor mínimo e não for frete grátis
+      if (
+        cupomDados?.tipo !== "frete" &&
+        cupomDados?.valorMinimo &&
+        totalProdutos < cupomDados.valorMinimo
+      ) {
+        feedback.textContent = `Valor mínimo de R$ ${cupomDados.valorMinimo.toFixed(
+          2
+        )} para usar este cupom.`;
+        feedback.style.color = "orange";
+        return;
+      }
+
       totalComCupom -= valorDesconto;
     }
-    
-    // Atualiza visualmente o resumo
+
+    // Atualiza resumo visual
     const resumoTotal = document.querySelector("#resumo-total");
     if (resumoTotal) {
-      resumoTotal.innerHTML = `
-        <p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>
-        <p>Frete: <strong>R$ ${frete.toFixed(2)}</strong> ${prazo > 0 ? `(Prazo: ${prazo} dias)` : ""}</p>
-        ${descontoAplicado > 0 ? `<p>Desconto: <strong>−${descontoAplicado}%</strong></p>` : ""}
-        ${freteGratisAtivo ? `<p><strong>Frete grátis aplicado!</strong></p>` : ""}
-        <hr>
-        <p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>
-      `;
+      const linhas = [];
+      linhas.push(`<p>Produtos: <strong>R$ ${totalProdutos.toFixed(2)}</strong></p>`);
+
+      if (freteGratisAtivo) {
+        linhas.push(`<p>Frete: <strong>R$ 0,00</strong> (Frete grátis aplicado)</p>`);
+      } else {
+        linhas.push(
+          `<p>Frete: <strong>R$ ${frete.toFixed(2)}</strong> ${
+            prazo > 0 ? `(Prazo: ${prazo} dias)` : ""
+          }</p>`
+        );
+      }
+
+      if (cupomDados?.tipo === "fixo" && descontoAplicado > 0) {
+        linhas.push(`<p>Desconto: <strong>−R$ ${descontoAplicado.toFixed(2)}</strong></p>`);
+      } else if (cupomDados?.tipo === "percentual" && descontoAplicado > 0) {
+        const valorPercentual = (totalProdutos * descontoAplicado) / 100;
+        linhas.push(
+          `<p>Desconto (${descontoAplicado}%): <strong>−R$ ${valorPercentual.toFixed(2)}</strong></p>`
+        );
+      }
+
+      linhas.push("<hr>");
+      linhas.push(`<p>Total: <strong>R$ ${totalComCupom.toFixed(2)}</strong></p>`);
+      resumoTotal.innerHTML = linhas.join("");
     }
 
     return { frete, prazo, totalGeral: totalComCupom };
-
   } catch (error) {
     console.error("Erro ao calcular frete:", error);
     const resumoTotal = document.querySelector("#resumo-total");
