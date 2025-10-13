@@ -1,29 +1,24 @@
 // ------------------- IMPORTS -------------------
 import dotenv from "dotenv";
 dotenv.config();
-
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-
 // Rotas
 import produtoRoutes from "./routes/routesProdutos.js";
 import pedidosRoutes from "./routes/routesPedidos.js";
 import checkoutRoutes from "./routes/routesCheckout.js";
 import webhookRoutesMp from "./routes/routesWebhookMp.js";
 import cupomRoutes from "./routes/routesCupom.js";
-import { registrarRotasAdmin } from "./routes/routesAuth.js";
-
-
 
 // Modelo
 import Pedido from "./models/Pedido.js";
 
-registrarRotasAdmin(app);
-
-
 // ------------------- CONFIGURAÇÃO -------------------
 const app = express();
+
+registrarRotasAdmin(app);
+import { registrarRotasAdmin } from "./routes/routesAuth.js";
 
 const allowedOrigins = [
   "https://yane-moda-bags.vercel.app",
@@ -53,12 +48,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-import { registrarRotasAdmin } from "./routes/routesCheckout.js";
-
 
 registrarRotasAdmin(app);
-
-
 
 // ------------------- ROTAS -------------------
 app.use("/api/produtos", produtoRoutes);

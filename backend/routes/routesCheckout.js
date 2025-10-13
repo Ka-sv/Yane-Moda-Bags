@@ -99,24 +99,4 @@ router.get("/status/:id", async (req, res) => {
 });
 
 
-// --- Verificação simples de senha admin ---
-// --- Verificação simples de senha admin (rota direta no router) ---
-import dotenv from "dotenv";
-dotenv.config();
-
-router.post("/auth/admin", (req, res) => {
-  const { senha } = req.body;
-
-  if (!senha) {
-    return res.status(400).json({ ok: false, message: "Senha não informada." });
-  }
-
-  // opcional: log para depuração (remova em produção)
-  // console.log("Tentativa de login admin, senha recebida:", senha ? "[PROVIDED]" : "[EMPTY]");
-
-  if (senha === process.env.ADMIN_PASSWORD) {
-    return res.json({ ok: true });
-  }
-
-  return res.status(401).json({ ok: false, message: "Senha incorreta." });
-});
+export default router;
