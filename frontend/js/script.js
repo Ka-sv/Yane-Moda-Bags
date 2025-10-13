@@ -784,3 +784,15 @@ document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {
   });
 });
 
+// Garante que a mensagem correta apareça no carregamento
+window.addEventListener("DOMContentLoaded", () => {
+  const selecionado = document.querySelector("input[name='metodoEntrega']:checked");
+  if (selecionado) {
+    const isDelivery = selecionado.value === "delivery";
+    const enderecoDiv = document.getElementById("endereco-entrega");
+    const infoRetirada = document.getElementById("info-retirada");
+
+    enderecoDiv.style.display = isDelivery ? "block" : "none";
+    infoRetirada.style.display = isDelivery ? "none" : "block";
+  }
+});

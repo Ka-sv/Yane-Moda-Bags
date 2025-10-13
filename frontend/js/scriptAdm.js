@@ -1,5 +1,5 @@
 // ------------------- AUTENTICAÇÃO SIMPLES -------------------
-
+const API_BASE_URL = "https://yane-moda-bags.onrender.com"; 
 (async () => {
   const senhaDigitada = localStorage.getItem("senhaAdmin") || prompt("Digite a senha de administrador:");
 
@@ -81,7 +81,7 @@ async function carregarPedidosPagos() {
   }
   
 // ------------------- GERENCIAMENTO DE CUPONS -------------------
-const API_BASE_URL = "https://yane-moda-bags.onrender.com"; 
+
 
 
 
