@@ -17,7 +17,7 @@ import Pedido from "./models/Pedido.js";
 // ------------------- CONFIGURAÇÃO -------------------
 const app = express();
 
-registrarRotasAdmin(app);
+
 import { registrarRotasAdmin } from "./routes/routesAuth.js";
 
 const allowedOrigins = [
@@ -49,7 +49,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-registrarRotasAdmin(app);
+
 
 // ------------------- ROTAS -------------------
 app.use("/api/produtos", produtoRoutes);
@@ -80,7 +80,7 @@ app.get("/ping", (req, res) => {
 
 import freteRoutes from "./routes/frete.js";
 app.use("/api/frete", freteRoutes);
-
+registrarRotasAdmin(app);
 
 // ------------------- CONEXÃO MONGODB -------------------
 mongoose.connect(process.env.MONGO_URI)
