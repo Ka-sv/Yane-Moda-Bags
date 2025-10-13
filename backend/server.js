@@ -12,10 +12,15 @@ import pedidosRoutes from "./routes/routesPedidos.js";
 import checkoutRoutes from "./routes/routesCheckout.js";
 import webhookRoutesMp from "./routes/routesWebhookMp.js";
 import cupomRoutes from "./routes/routesCupom.js";
+import { registrarRotasAdmin } from "./routes/routesAuth.js";
+
 
 
 // Modelo
 import Pedido from "./models/Pedido.js";
+
+registrarRotasAdmin(app);
+
 
 // ------------------- CONFIGURAÇÃO -------------------
 const app = express();
@@ -49,6 +54,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 import { registrarRotasAdmin } from "./routes/routesCheckout.js";
+
 
 registrarRotasAdmin(app);
 
