@@ -452,6 +452,17 @@ body {
     align-items: stretch;
   }
 
+  .whatsapp-fixo {
+    bottom: 80px;
+    right: 15px;
+    padding: 8px;
+  }
+
+  .whatsapp-fixo img {
+    width: 40px;
+    height: 40px;
+  }
+
   #aplicar-cupom {
     width: 100%;
   }
@@ -616,4 +627,28 @@ body {
 #cupom-feedback {
   font-size: 0.9rem;
   color: var(--cor-destaque);
+}
+
+.whatsapp-fixo {
+  position: fixed;
+  bottom: 90px; /* deixa acima do botão do carrinho */
+  right: 10px;
+  z-index: 999;
+  background-color: #25d366;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  padding: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.whatsapp-fixo img {
+  width: 35px;
+  height: 35px;
+  display: block;
+}
+
+/* Animação ao passar o mouse */
+.whatsapp-fixo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
