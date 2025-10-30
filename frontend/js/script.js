@@ -485,9 +485,41 @@ document.querySelectorAll("input[name='metodoEntrega']").forEach((input) => {
 });
 
 
-document.querySelector("#checkout-cep").addEventListener("blur", calcularFrete);
+// document.querySelector("#checkout-cep").addEventListener("blur", calcularFrete);
 
-// ------------------- Finalizar Compra -------------------
+
+// ------------------- CEP Automático + Cálculo de Frete -------------------
+const cepInput = document.querySelector("#checkout-cep");
+if (cepInput) {
+  cepInput.addEventListener("blur", async () => {
+    const cep = cepInput.value.replace(/\D/g, ""); // remove tudo que não é número
+    if (cep.length !== 8) return;
+
+    try {
+      // 🔹 Busca dados no ViaCEP
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+
+      if (data.erro) {
+        alert("CEP não encontrado. Verifique e tente novamente.");
+        return;
+      }
+
+      // 🔹 Preenche os campos automaticamente
+      document.querySelector("#checkout-rua").value = data.logradouro || "";
+      document.querySelector("#checkout-bairro").value = data.bairro || "";
+      document.querySelector("#checkout-cidade").value = data.localidade || "";
+      document.querySelector("#checkout-estado").value = data.uf || "";
+
+      // 🔹 Chama cálculo do frete automaticamente após preencher
+      await calcularFrete();
+    } catch (err) {
+      console.error("Erro ao buscar CEP:", err);
+    }
+  });
+}
+
+
 async function finalizarCompra() {
   try {
     // 1. Calcula frete
