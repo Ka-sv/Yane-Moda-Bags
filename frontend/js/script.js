@@ -44,7 +44,7 @@ function mostrarProdutos(produtos) {
   }
 
   produtos.forEach(p => {
-    // 🖼️ Define imagens principais e miniaturas
+    // 🖼️ Imagens principais e miniaturas
     let imagens = [];
     if (Array.isArray(p.imagens) && p.imagens.length > 0) {
       imagens = p.imagens;
@@ -99,6 +99,9 @@ function mostrarProdutos(produtos) {
     const variacoesDiv = document.createElement("div");
     variacoesDiv.className = "produto-variacoes";
 
+    let corSelecionada = null;
+    let numeroSelecionado = null;
+
     const coresDisponiveis = [...new Set((p.variantes || []).map(v => v.cor).filter(Boolean))];
     const tamanhosDisponiveis = [...new Set((p.variantes || []).map(v => v.numero).filter(Boolean))];
 
@@ -116,13 +119,19 @@ function mostrarProdutos(produtos) {
         const btn = document.createElement("button");
         btn.textContent = cor;
         btn.className = "btn-variante-card";
+        btn.addEventListener("click", () => {
+          corSelecionada = cor;
+          // desmarca outros
+          corBtns.querySelectorAll("button").forEach(b => b.classList.remove("ativo"));
+          btn.classList.add("ativo");
+        });
         corBtns.appendChild(btn);
       });
       corContainer.appendChild(corBtns);
       variacoesDiv.appendChild(corContainer);
     }
 
-    // 🔹 Tamanhos
+    // 🔹 Tamanhos / Numeração
     if (tamanhosDisponiveis.length) {
       const tamContainer = document.createElement("div");
       tamContainer.className = "variacao-container";
@@ -136,6 +145,12 @@ function mostrarProdutos(produtos) {
         const btn = document.createElement("button");
         btn.textContent = tam;
         btn.className = "btn-variante-card";
+        btn.addEventListener("click", () => {
+          numeroSelecionado = tam;
+          // desmarca outros
+          tamBtns.querySelectorAll("button").forEach(b => b.classList.remove("ativo"));
+          btn.classList.add("ativo");
+        });
         tamBtns.appendChild(btn);
       });
       tamContainer.appendChild(tamBtns);
@@ -160,9 +175,26 @@ function mostrarProdutos(produtos) {
     btnCarrinho.type = "button";
     btnCarrinho.textContent = "Adicionar ao carrinho";
     btnCarrinho.className = "btn-adicionar";
-    btnCarrinho.addEventListener("click", () =>
-      adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0))
-    );
+
+    btnCarrinho.addEventListener("click", () => {
+      // se houver variações e o usuário não escolheu, avisa
+      const temCores = coresDisponiveis.length > 0;
+      const temNum = tamanhosDisponiveis.length > 0;
+
+      if ((temCores && !corSelecionada) || (temNum && !numeroSelecionado)) {
+        alert("Por favor, selecione a cor e/ou numeração desejada antes de adicionar ao carrinho.");
+        return;
+      }
+
+      // monta objeto selecionado
+      const selecionado = {
+        cor: corSelecionada || null,
+        numero: numeroSelecionado || null
+      };
+
+      adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0), selecionado);
+      
+    });
 
     info.appendChild(btnDetalhes);
     info.appendChild(btnCarrinho);
@@ -172,6 +204,7 @@ function mostrarProdutos(produtos) {
     lista.appendChild(card);
   });
 }
+
 
 
 
@@ -237,13 +270,26 @@ function initCarrinho() {
 }
 
 function adicionarAoCarrinho(id, nome, preco, selecionado) {
-  carrinho.push({
-    id,
-    nome,
-    preco,
-    selecionado
-  });
+  // garante que tenha quantidade e selecionado
+  const existente = carrinho.find(
+    i => i.id === id &&
+         JSON.stringify(i.selecionado) === JSON.stringify(selecionado)
+  );
+
+  if (existente) {
+    existente.quantidade++;
+  } else {
+    carrinho.push({
+      id,
+      nome,
+      preco: Number(preco),
+      quantidade: 1,
+      selecionado: selecionado || {}
+    });
+  }
+
   atualizarCarrinho();
+  
 }
 
 
@@ -280,14 +326,24 @@ function atualizarCarrinho() {
   }
 
   carrinho.forEach(item => {
-    const subtotal = item.preco * item.quantidade;
+    const subtotal = Number(item.preco || 0) * Number(item.quantidade || 1);
     soma += subtotal;
+
+    // monta texto de variação
+    let variacaoTxt = "";
+    if (item.selecionado) {
+      const partes = [];
+      if (item.selecionado.cor) partes.push(`Cor: ${item.selecionado.cor}`);
+      if (item.selecionado.numero) partes.push(`Nº ${item.selecionado.numero}`);
+      variacaoTxt = partes.length ? `<br><small>${partes.join(" | ")}</small>` : "";
+    }
 
     const li = document.createElement("li");
     li.className = "cart-item";
     li.innerHTML = `
       <div class="item-info">
         <strong>${item.nome}</strong>
+        ${variacaoTxt}
         <span class="item-price">R$ ${item.preco.toFixed(2)}</span>
       </div>
       <div class="qty-controls">

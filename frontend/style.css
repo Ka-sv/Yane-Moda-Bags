@@ -882,6 +882,17 @@ body {
 
 }
 
+/* 🔹 Botão ativo (selecionado) de cor ou tamanho */
+.btn-variante-card.ativo,
+.btn-variante.ativo {
+  background: var(--cor-destaque);
+  color: var(--cor-secundaria);
+  border-color: var(--cor-destaque);
+  transform: scale(1.05);
+  box-shadow: 0 0 8px var(--cor-destaque);
+}
+
+
 @keyframes aparecer {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
