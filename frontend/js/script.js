@@ -44,28 +44,18 @@ function mostrarProdutos(produtos) {
   }
 
   produtos.forEach(p => {
-    // aceita tanto o campo novo (imagens: [String]) quanto o antigo (imagem: String)
     let imagens = [];
-
-    // Sempre transforma em array
     if (Array.isArray(p.imagens) && p.imagens.length > 0) {
       imagens = p.imagens;
     } else if (p.imagem) {
-      imagens = [p.imagem]; // converte string única em array
-    }
-    
-    // Se não tiver nenhuma imagem válida, usa placeholder
-    if (!imagens.length) {
+      imagens = [p.imagem];
+    } else {
       imagens = ["https://via.placeholder.com/300x300?text=Sem+imagem"];
     }
-    
 
-
-    // card
     const card = document.createElement("div");
     card.className = "card produto-card";
 
-    // container da imagem principal + miniaturas (lado a lado)
     const container = document.createElement("div");
     container.className = "produto-container";
 
@@ -77,21 +67,17 @@ function mostrarProdutos(produtos) {
     const thumbsWrapper = document.createElement("div");
     thumbsWrapper.className = "miniaturas";
 
-    // se houver >1 imagens, cria miniaturas com as imagens *exceto* a principal
     if (imagens.length > 1) {
       imagens.slice(1).forEach(src => {
         const t = document.createElement("img");
         t.className = "miniatura";
         t.src = src;
         t.alt = `Variação ${p.nome || ""}`;
-
-        // ao clicar: swap entre thumb e imagem principal
         t.addEventListener("click", () => {
           const tmp = mainImg.src;
           mainImg.src = t.src;
           t.src = tmp;
         });
-
         thumbsWrapper.appendChild(t);
       });
     }
@@ -99,7 +85,6 @@ function mostrarProdutos(produtos) {
     container.appendChild(mainImg);
     container.appendChild(thumbsWrapper);
 
-    // infos do produto
     const info = document.createElement("div");
     info.className = "produto-info";
     info.innerHTML = `
@@ -108,18 +93,33 @@ function mostrarProdutos(produtos) {
       <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
     `;
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = "Adicionar ao carrinho";
-    btn.addEventListener("click", () =>
+    // 🔹 Botão "Ver detalhes" abre o modal
+    const btnDetalhes = document.createElement("a");
+    btnDetalhes.href = `?produto=${p.slug || p._id}`;
+    btnDetalhes.textContent = "Ver detalhes";
+    btnDetalhes.className = "btn-detalhes";
+    
+    // impede recarregar a página, abre o modal direto
+    btnDetalhes.addEventListener("click", (e) => {
+      e.preventDefault();
+      history.pushState(null, "", btnDetalhes.href); // atualiza o link da barra
+      abrirModalProduto(p);
+    });
+    
+
+    // 🔹 Botão "Adicionar ao carrinho"
+    const btnCarrinho = document.createElement("button");
+    btnCarrinho.type = "button";
+    btnCarrinho.textContent = "Adicionar ao carrinho";
+    btnCarrinho.addEventListener("click", () =>
       adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0))
     );
 
-    info.appendChild(btn);
+    info.appendChild(btnDetalhes);
+    info.appendChild(btnCarrinho);
 
     card.appendChild(container);
     card.appendChild(info);
-
     lista.appendChild(card);
   });
 }
@@ -828,3 +828,77 @@ window.addEventListener("DOMContentLoaded", () => {
     infoRetirada.style.display = isDelivery ? "none" : "block";
   }
 });
+
+
+function abrirModalProduto(produto) {
+  const modal = document.getElementById("produto-modal");
+  const conteudo = document.getElementById("produto-detalhe-conteudo");
+  const closeBtn = document.getElementById("close-produto-modal");
+
+  if (!modal || !conteudo) return;
+
+  // Monta o HTML dentro do modal
+  conteudo.innerHTML = `
+    <div class="produto-detalhe-container">
+      <img src="${produto.imagens?.[0] || produto.imagem || 'https://via.placeholder.com/400x400?text=Sem+imagem'}" 
+           alt="${produto.nome}" 
+           class="produto-detalhe-img">
+      <div class="produto-detalhe-info">
+        <h2>${produto.nome}</h2>
+        <p>${produto.descricao || "Sem descrição disponível."}</p>
+        <strong>R$ ${Number(produto.preco || 0).toFixed(2)}</strong>
+        <button type="button" class="btn-adicionar" 
+          onclick="adicionarAoCarrinho('${produto._id}', '${produto.nome}', ${Number(produto.preco)})">
+          Adicionar ao carrinho
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Mostra o modal
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+
+  // Fecha ao clicar no X
+  closeBtn.onclick = () => fecharModalProduto();
+  
+  // Fecha ao clicar fora
+  window.onclick = (e) => {
+    if (e.target === modal) fecharModalProduto();
+  };
+}
+
+function fecharModalProduto() {
+  const modal = document.getElementById("produto-modal");
+  if (modal) {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  // espera os produtos carregarem primeiro
+  await carregarProdutos();
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("produto");
+  if (slug) {
+    // tenta achar o produto correspondente
+    const produto = produtosCarregados.find(p => p.slug === slug || p._id === slug);
+    if (produto) abrirModalProduto(produto);
+  }
+});
+
+// fecha modal e remove parâmetro da URL
+function fecharModalProduto() {
+  const modal = document.getElementById("produto-modal");
+  if (modal) {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  // limpa o parâmetro da URL
+  const url = new URL(window.location);
+  url.searchParams.delete("produto");
+  history.replaceState(null, "", url);
+}

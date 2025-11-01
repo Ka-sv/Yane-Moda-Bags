@@ -28,4 +28,26 @@ router.post("/", async (req, res) => {
 });
 
 
+// GET - produto por ID ou slug
+router.get("/:idOuSlug", async (req, res) => {
+  try {
+    const { idOuSlug } = req.params;
+
+    const produto = await Produto.findOne({
+      $or: [{ _id: idOuSlug }, { slug: idOuSlug }]
+    });
+
+    if (!produto) {
+      return res.status(404).json({ error: "Produto não encontrado" });
+    }
+
+    res.json(produto);
+  } catch (err) {
+    console.error("Erro ao buscar produto:", err.message);
+    res.status(500).json({ error: "Erro ao buscar produto" });
+  }
+});
+
+
+
 export default router;
