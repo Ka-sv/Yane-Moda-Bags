@@ -822,6 +822,64 @@ body {
     width: 100%;
     font-size: 1rem;
   }
+
+  /* --- Ajustes para variações no card em telas pequenas --- */
+.produto-variacoes {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.variacao-container {
+  gap: 3px;
+  align-items: center;
+}
+
+.variacao-container p {
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.grupo-variante {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btn-variante-card {
+  font-size: 0.8rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  min-width: 50px;
+}
+
+.btn-variante-card:hover {
+  transform: none; /* evita zoom excessivo no toque */
+}
+
+.produto-info h3 {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.produto-info p {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.produto-info strong {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.btn-detalhes,
+.btn-adicionar {
+  width: 100%;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
 }
 
 @keyframes aparecer {
@@ -850,4 +908,123 @@ body {
   background: var(--cor-destaque);
   color: var(--cor-secundaria);
   transform: scale(1.05);
+}
+
+
+/* =========================================================
+   VARIANTES (cores e tamanhos)
+========================================================= */
+.opcoes-variante {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.opcoes-variante p {
+  font-weight: 600;
+  color: var(--cor-destaque);
+  margin-bottom: 4px;
+}
+
+.btn-variante {
+  background: var(--cor-secundaria);
+  color: var(--cor-destaque);
+  border: 2px solid var(--cor-secundaria);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.15s, color 0.25s;
+  margin: 3px;
+}
+
+.btn-variante:hover {
+  background: var(--cor-destaque);
+  color: var(--cor-secundaria);
+  transform: scale(1.05);
+}
+
+.btn-variante.ativo {
+  background: var(--cor-destaque);
+  color: var(--cor-secundaria);
+  border-color: var(--cor-destaque);
+}
+
+/* Mostra as variantes também dentro do card */
+.produto-variacoes {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.produto-variacoes span {
+  display: inline-block;
+  background: var(--cor-secundaria);
+  color: var(--cor-destaque);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin: 2px;
+}
+
+
+/* =========================================================
+   VARIAÇÕES (Cores e Tamanhos) dentro do CARD
+========================================================= */
+.produto-variacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.variacao-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.variacao-container p {
+  font-weight: 600;
+  color: var(--cor-destaque);
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.grupo-variante {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-variante-card {
+  background: var(--cor-secundaria);
+  color: var(--cor-destaque);
+  border: 2px solid var(--cor-secundaria);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background 0.25s, transform 0.2s;
+}
+
+.btn-variante-card:hover {
+  background: var(--cor-destaque);
+  color: var(--cor-secundaria);
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .btn-variante-card {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
 }

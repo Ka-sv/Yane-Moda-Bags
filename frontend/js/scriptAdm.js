@@ -47,8 +47,15 @@ async function carregarPedidosPagos() {
       pedidos.forEach(p => {
         const tr = document.createElement("tr");
         const itens = (p.itens || [])
-          .map(i => `${i.nome} (x${i.quantidade})`)
-          .join(", ");
+        .map(i => {
+          const variacoes = [];
+          if (i.selecionado?.cor) variacoes.push(`Cor: ${i.selecionado.cor}`);
+          if (i.selecionado?.numero) variacoes.push(`Nº ${i.selecionado.numero}`);
+          const detalhes = variacoes.length ? ` - ${variacoes.join(" | ")}` : "";
+          return `${i.nome}${detalhes} (x${i.quantidade})`;
+        })
+        .join(", ");
+
       
         const endereco = p.endereco
           ? `${p.endereco.rua || ""}, ${p.endereco.numero || ""} - ${p.endereco.bairro || ""}, ${p.endereco.cidade || ""} - ${p.endereco.estado || ""} (${p.endereco.cep || ""})`

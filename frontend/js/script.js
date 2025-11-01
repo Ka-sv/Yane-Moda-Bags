@@ -44,6 +44,7 @@ function mostrarProdutos(produtos) {
   }
 
   produtos.forEach(p => {
+    // 🖼️ Define imagens principais e miniaturas
     let imagens = [];
     if (Array.isArray(p.imagens) && p.imagens.length > 0) {
       imagens = p.imagens;
@@ -85,6 +86,7 @@ function mostrarProdutos(produtos) {
     container.appendChild(mainImg);
     container.appendChild(thumbsWrapper);
 
+    // 🧾 Informações básicas
     const info = document.createElement("div");
     info.className = "produto-info";
     info.innerHTML = `
@@ -93,24 +95,71 @@ function mostrarProdutos(produtos) {
       <strong>R$ ${Number(p.preco || 0).toFixed(2)}</strong>
     `;
 
-    // 🔹 Botão "Ver detalhes" abre o modal
+    // 🎨 VARIAÇÕES (Cores e Tamanhos)
+    const variacoesDiv = document.createElement("div");
+    variacoesDiv.className = "produto-variacoes";
+
+    const coresDisponiveis = [...new Set((p.variantes || []).map(v => v.cor).filter(Boolean))];
+    const tamanhosDisponiveis = [...new Set((p.variantes || []).map(v => v.numero).filter(Boolean))];
+
+    // 🔹 Cores
+    if (coresDisponiveis.length) {
+      const corContainer = document.createElement("div");
+      corContainer.className = "variacao-container";
+      const corLabel = document.createElement("p");
+      corLabel.textContent = "Cores:";
+      corContainer.appendChild(corLabel);
+
+      const corBtns = document.createElement("div");
+      corBtns.className = "grupo-variante";
+      coresDisponiveis.forEach(cor => {
+        const btn = document.createElement("button");
+        btn.textContent = cor;
+        btn.className = "btn-variante-card";
+        corBtns.appendChild(btn);
+      });
+      corContainer.appendChild(corBtns);
+      variacoesDiv.appendChild(corContainer);
+    }
+
+    // 🔹 Tamanhos
+    if (tamanhosDisponiveis.length) {
+      const tamContainer = document.createElement("div");
+      tamContainer.className = "variacao-container";
+      const tamLabel = document.createElement("p");
+      tamLabel.textContent = "Tamanhos:";
+      tamContainer.appendChild(tamLabel);
+
+      const tamBtns = document.createElement("div");
+      tamBtns.className = "grupo-variante";
+      tamanhosDisponiveis.forEach(tam => {
+        const btn = document.createElement("button");
+        btn.textContent = tam;
+        btn.className = "btn-variante-card";
+        tamBtns.appendChild(btn);
+      });
+      tamContainer.appendChild(tamBtns);
+      variacoesDiv.appendChild(tamContainer);
+    }
+
+    info.appendChild(variacoesDiv);
+
+    // 🛒 Botão "Ver detalhes"
     const btnDetalhes = document.createElement("a");
     btnDetalhes.href = `?produto=${p.slug || p._id}`;
     btnDetalhes.textContent = "Ver detalhes";
     btnDetalhes.className = "btn-detalhes";
-    
-    // impede recarregar a página, abre o modal direto
     btnDetalhes.addEventListener("click", (e) => {
       e.preventDefault();
-      history.pushState(null, "", btnDetalhes.href); // atualiza o link da barra
+      history.pushState(null, "", btnDetalhes.href);
       abrirModalProduto(p);
     });
-    
 
-    // 🔹 Botão "Adicionar ao carrinho"
+    // 🛍️ Botão "Adicionar ao carrinho"
     const btnCarrinho = document.createElement("button");
     btnCarrinho.type = "button";
     btnCarrinho.textContent = "Adicionar ao carrinho";
+    btnCarrinho.className = "btn-adicionar";
     btnCarrinho.addEventListener("click", () =>
       adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0))
     );
@@ -123,6 +172,7 @@ function mostrarProdutos(produtos) {
     lista.appendChild(card);
   });
 }
+
 
 
 
@@ -186,12 +236,16 @@ function initCarrinho() {
   });
 }
 
-function adicionarAoCarrinho(id, nome, preco) {
-  const item = carrinho.find(i => i.id === id);
-  if (item) item.quantidade++;
-  else carrinho.push({ id, nome, preco: Number(preco || 0), quantidade: 1 });
+function adicionarAoCarrinho(id, nome, preco, selecionado) {
+  carrinho.push({
+    id,
+    nome,
+    preco,
+    selecionado
+  });
   atualizarCarrinho();
 }
+
 
 function aumentarQuantidade(id) {
   const item = carrinho.find(i => i.id === id);
@@ -520,84 +574,34 @@ if (cepInput) {
 }
 
 
-async function finalizarCompra() {
-  try {
-    // 1. Calcula frete
-    const resumoFrete = await calcularFrete();
-    if (!resumoFrete) {
-      document.querySelector("#resumo-total").innerHTML =
-        "<p style='color:red'>Não foi possível calcular o frete. Verifique os dados e tente novamente.</p>";
-      return;
-    }
-
-    const { frete, prazo, totalGeral } = resumoFrete;
-    const metodoEntrega = document.querySelector("input[name=metodoEntrega]:checked").value;
-
-    // 2. Monta endereço apenas se for delivery
-    let endereco = null;
-    if (metodoEntrega === "delivery") {
-      endereco = {
-        cep: document.querySelector("#checkout-cep").value,
-        rua: document.querySelector("#checkout-rua").value,
-        numero: document.querySelector("#checkout-numero").value,
-        bairro: document.querySelector("#checkout-bairro").value,
-        cidade: document.querySelector("#checkout-cidade").value,
-        estado: document.querySelector("#checkout-estado").value,
-        complemento: document.querySelector("#checkout-complemento").value,
-      };
-    }
-
-    // 3. Monta o payload completo
-    const payload = {
-      itens: carrinho,
-      email: document.querySelector("#checkout-email").value,
-      firstName: document.querySelector("#checkout-nome").value,
-      lastName: document.querySelector("#checkout-sobrenome").value,
-      frete,
-      prazo,
-      total: totalGeral,
-      metodoEntrega,
-      endereco,
-      cupom: cupomAtivo || null,
-    };
-
-    // 4. Envia para o backend gerar Pix
-    const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Falha ao iniciar checkout.");
-    }
-
-    const data = await response.json();
-
-    // 5. Exibe QR Code Pix no modal
-    abrirPixModal(data);
-
-  } catch (error) {
-    console.error("Erro ao finalizar compra:", error);
-    document.querySelector("#resumo-total").innerHTML =
-      "<p style='color:red'>Erro ao finalizar compra. Tente novamente.</p>";
-  }
-}
-
-
-
 // async function finalizarCompra() {
 //   try {
-//     // 1. Calcula frete antes de tudo
-//     const { frete, prazo, totalGeral } = await calcularFrete();
+//     // 1. Calcula frete
+//     const resumoFrete = await calcularFrete();
+//     if (!resumoFrete) {
+//       document.querySelector("#resumo-total").innerHTML =
+//         "<p style='color:red'>Não foi possível calcular o frete. Verifique os dados e tente novamente.</p>";
+//       return;
+//     }
 
-//     console.log("Resumo do pedido:");
-//     console.log("Itens:", carrinho);
-//     console.log("Frete:", frete);
-//     console.log("Prazo:", prazo);
-//     console.log("Total geral:", totalGeral);
+//     const { frete, prazo, totalGeral } = resumoFrete;
+//     const metodoEntrega = document.querySelector("input[name=metodoEntrega]:checked").value;
 
-//     // 2. Monta o payload para o backend
+//     // 2. Monta endereço apenas se for delivery
+//     let endereco = null;
+//     if (metodoEntrega === "delivery") {
+//       endereco = {
+//         cep: document.querySelector("#checkout-cep").value,
+//         rua: document.querySelector("#checkout-rua").value,
+//         numero: document.querySelector("#checkout-numero").value,
+//         bairro: document.querySelector("#checkout-bairro").value,
+//         cidade: document.querySelector("#checkout-cidade").value,
+//         estado: document.querySelector("#checkout-estado").value,
+//         complemento: document.querySelector("#checkout-complemento").value,
+//       };
+//     }
+
+//     // 3. Monta o payload completo
 //     const payload = {
 //       itens: carrinho,
 //       email: document.querySelector("#checkout-email").value,
@@ -606,8 +610,12 @@ async function finalizarCompra() {
 //       frete,
 //       prazo,
 //       total: totalGeral,
+//       metodoEntrega,
+//       endereco,
+//       cupom: cupomAtivo || null,
 //     };
-//     // 3. Envia para o backend gerar o Pix
+
+//     // 4. Envia para o backend gerar Pix
 //     const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
 //       method: "POST",
 //       headers: { "Content-Type": "application/json" },
@@ -620,16 +628,119 @@ async function finalizarCompra() {
 
 //     const data = await response.json();
 
-//     // 4. Exibe QR Code / instruções Pix
-//     console.log("Resposta Pix:", data);
-//     alert("Pedido gerado com sucesso! Abra o Pix e finalize o pagamento.");
-//     // Aqui você pode atualizar seu modal com o QR Code vindo do backend
+//     // 5. Exibe QR Code Pix no modal
+//     abrirPixModal(data);
 
 //   } catch (error) {
 //     console.error("Erro ao finalizar compra:", error);
-//     alert("Erro ao finalizar compra, tente novamente.");
+//     document.querySelector("#resumo-total").innerHTML =
+//       "<p style='color:red'>Erro ao finalizar compra. Tente novamente.</p>";
 //   }
 // }
+
+
+
+async function finalizarCompra() {
+  try {
+    // 1. Calcula frete
+    const resumoFrete = await calcularFrete();
+    if (!resumoFrete) {
+      const resumoTotalEl = document.querySelector("#resumo-total");
+      if (resumoTotalEl) {
+        resumoTotalEl.innerHTML =
+          "<p style='color:red'>Não foi possível calcular o frete. Verifique os dados e tente novamente.</p>";
+      }
+      return;
+    }
+
+    const { frete, prazo, totalGeral } = resumoFrete;
+
+    // protege caso não haja seleção (por segurança)
+    const metodoSelecionadoEl = document.querySelector("input[name=metodoEntrega]:checked");
+    const metodoEntrega = metodoSelecionadoEl ? metodoSelecionadoEl.value : "delivery";
+
+    // 2. Monta endereço apenas se for delivery
+    let endereco = null;
+    if (metodoEntrega === "delivery") {
+      endereco = {
+        cep: document.querySelector("#checkout-cep")?.value || "",
+        rua: document.querySelector("#checkout-rua")?.value || "",
+        numero: document.querySelector("#checkout-numero")?.value || "",
+        bairro: document.querySelector("#checkout-bairro")?.value || "",
+        cidade: document.querySelector("#checkout-cidade")?.value || "",
+        estado: document.querySelector("#checkout-estado")?.value || "",
+        complemento: document.querySelector("#checkout-complemento")?.value || "",
+      };
+    }
+
+    // 3. Normaliza itens do carrinho para enviar ao backend
+    // garante quantidade, assegura preco numérico e inclui 'descricaoVariação' a partir de selecionado
+    const itensPayload = (carrinho || []).map(i => {
+      const quantidade = Number(i.quantidade || 1);
+      const preco = Number(i.preco || 0);
+      const selecionado = i.selecionado || null;
+
+      // monta uma string legível para o painel, ex: "Cor: Preto | Nº 38"
+      const partes = [];
+      if (selecionado?.cor) partes.push(`Cor: ${selecionado.cor}`);
+      if (selecionado?.numero) partes.push(`Nº ${selecionado.numero}`);
+      const descricaoVariação = partes.length ? partes.join(" | ") : "";
+
+      return {
+        id: i.id || i._id || null,
+        nome: i.nome || "",
+        preco,
+        quantidade,
+        selecionado,
+        descricaoVariação,
+      };
+    });
+
+    // 4. Monta o payload completo (mantendo campos já existentes)
+    const payload = {
+      itens: itensPayload,
+      email: document.querySelector("#checkout-email")?.value || "",
+      firstName: document.querySelector("#checkout-nome")?.value || "",
+      lastName: document.querySelector("#checkout-sobrenome")?.value || "",
+      frete,
+      prazo,
+      total: totalGeral,
+      metodoEntrega,
+      endereco,
+      cupom: cupomAtivo || null,
+    };
+
+    // 5. Envia para o backend gerar Pix (mesma rota que já usava)
+    const response = await fetch(`${API_BASE_URL}/api/checkout/pix`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      // tenta ler corpo de erro para debug
+      let errText = "Falha ao iniciar checkout.";
+      try {
+        const errJson = await response.json();
+        if (errJson?.error) errText = errJson.error;
+      } catch (e) { /* ignora parse */ }
+      throw new Error(errText);
+    }
+
+    const data = await response.json();
+
+    // 6. Exibe QR Code Pix no modal (mesmo comportamento anterior)
+    abrirPixModal(data);
+  } catch (error) {
+    console.error("Erro ao finalizar compra:", error);
+    const resumoTotalEl = document.querySelector("#resumo-total");
+    if (resumoTotalEl) {
+      resumoTotalEl.innerHTML =
+        "<p style='color:red'>Erro ao finalizar compra. Tente novamente.</p>";
+    }
+  }
+}
+
 
 
 
@@ -833,40 +944,93 @@ window.addEventListener("DOMContentLoaded", () => {
 function abrirModalProduto(produto) {
   const modal = document.getElementById("produto-modal");
   const conteudo = document.getElementById("produto-detalhe-conteudo");
-  const closeBtn = document.getElementById("close-produto-modal");
 
-  if (!modal || !conteudo) return;
-
-  // Monta o HTML dentro do modal
   conteudo.innerHTML = `
     <div class="produto-detalhe-container">
-      <img src="${produto.imagens?.[0] || produto.imagem || 'https://via.placeholder.com/400x400?text=Sem+imagem'}" 
-           alt="${produto.nome}" 
-           class="produto-detalhe-img">
+      <img src="${produto.imagens[0]}" class="produto-detalhe-img">
       <div class="produto-detalhe-info">
         <h2>${produto.nome}</h2>
-        <p>${produto.descricao || "Sem descrição disponível."}</p>
-        <strong>R$ ${Number(produto.preco || 0).toFixed(2)}</strong>
-        <button type="button" class="btn-adicionar" 
-          onclick="adicionarAoCarrinho('${produto._id}', '${produto.nome}', ${Number(produto.preco)})">
-          Adicionar ao carrinho
-        </button>
+        <p>${produto.descricao || ""}</p>
+        <strong>R$ ${produto.preco.toFixed(2)}</strong>
+
+        <div id="opcoes-variante"></div>
+
+        <button id="btn-adicionar" class="btn-adicionar">Adicionar ao carrinho</button>
       </div>
     </div>
   `;
 
-  // Mostra o modal
+  const opcoesDiv = document.getElementById("opcoes-variante");
+  const cores = [...new Set(produto.variantes?.map(v => v.cor).filter(Boolean))];
+  const numeros = [...new Set(produto.variantes?.map(v => v.numero).filter(Boolean))];
+
+  let selecionado = { cor: null, numero: null };
+
+  // 🔹 Botões de cor
+  if (cores.length) {
+    const corContainer = document.createElement("div");
+    corContainer.className = "opcao-cor";
+    corContainer.innerHTML = `<p><strong>Cor:</strong></p>`;
+    cores.forEach(c => {
+      const btn = document.createElement("button");
+      btn.textContent = c;
+      btn.className = "btn-variante";
+      btn.addEventListener("click", () => {
+        selecionado.cor = c;
+        document.querySelectorAll(".opcao-cor .btn-variante").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+      });
+      corContainer.appendChild(btn);
+    });
+    opcoesDiv.appendChild(corContainer);
+  }
+
+  // 🔹 Botões de numeração
+  if (numeros.length) {
+    const numContainer = document.createElement("div");
+    numContainer.className = "opcao-numero";
+    numContainer.innerHTML = `<p><strong>Número:</strong></p>`;
+    numeros.forEach(n => {
+      const btn = document.createElement("button");
+      btn.textContent = n;
+      btn.className = "btn-variante";
+      btn.addEventListener("click", () => {
+        selecionado.numero = n;
+        document.querySelectorAll(".opcao-numero .btn-variante").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+      });
+      numContainer.appendChild(btn);
+    });
+    opcoesDiv.appendChild(numContainer);
+  }
+
+  // 🔹 Adicionar ao carrinho
+  document.getElementById("btn-adicionar").addEventListener("click", () => {
+    if (cores.length && !selecionado.cor) {
+      alert("Escolha uma cor antes de adicionar ao carrinho.");
+      return;
+    }
+    if (numeros.length && !selecionado.numero) {
+      alert("Escolha uma numeração antes de adicionar ao carrinho.");
+      return;
+    }
+    adicionarAoCarrinho(produto._id, produto.nome, produto.preco, selecionado);
+    fecharProdutoModal();
+  });
+
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
 
-  // Fecha ao clicar no X
-  closeBtn.onclick = () => fecharModalProduto();
-  
-  // Fecha ao clicar fora
-  window.onclick = (e) => {
-    if (e.target === modal) fecharModalProduto();
-  };
+  document.getElementById("close-produto-modal").addEventListener("click", fecharProdutoModal);
 }
+
+function fecharProdutoModal() {
+  const modal = document.getElementById("produto-modal");
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+
 
 function fecharModalProduto() {
   const modal = document.getElementById("produto-modal");

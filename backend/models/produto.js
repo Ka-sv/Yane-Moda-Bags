@@ -1,20 +1,17 @@
 import mongoose from "mongoose";
-import slugify from "slugify"; // instale: npm i slugify
+
+const VarianteSchema = new mongoose.Schema({
+  cor: String,          // ex: "preto", "azul"
+  numero: String,       // ex: "38", "M", "Único"
+  imagens: [String],    // imagens específicas (opcional)
+});
 
 const ProdutoSchema = new mongoose.Schema({
   nome: { type: String, required: true },
-  preco: { type: Number, required: true },
   descricao: String,
+  preco: { type: Number, required: true },
   imagens: [String],
-  slug: { type: String, unique: true }, // novo campo amigável na URL
-}, { timestamps: true });
-
-// 🔹 Gera o slug automaticamente antes de salvar
-ProdutoSchema.pre("save", function (next) {
-  if (!this.slug) {
-    this.slug = slugify(this.nome, { lower: true, strict: true });
-  }
-  next();
+  variantes: [VarianteSchema], // combinações de cor e/ou numeração
 });
 
-export default mongoose.model("Produto", ProdutoSchema);
+export default mongoose.models.Produto || mongoose.model("Produto", ProdutoSchema);
