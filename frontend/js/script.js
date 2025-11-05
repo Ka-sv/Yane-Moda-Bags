@@ -1,5 +1,8 @@
 // ------------------- Config -------------------
 let carrinho = [];
+let ultimoValorCompra = 0;
+let ultimoPaymentId = null;
+
 // const API_BASE_URL = window.location.hostname.includes("localhost")
 //   ? "http://localhost:5000"
 //   : "https://yane-moda-bags.onrender.com";
@@ -353,6 +356,19 @@ function atualizarCarrinho() {
         <span class="item-price">R$ ${subtotal.toFixed(2)}</span>
       </div>
     `;
+
+    // 🔹 Rastreia "add_to_cart" no GA4 e Google Ads
+    if (typeof gtag === "function") {
+      gtag('event', 'add_to_cart', {
+        items: [{
+          item_id: id,
+          item_name: nome,
+          price: preco,
+          quantity: 1
+        }]
+      });
+    }
+
     lista.appendChild(li);
   });
 
@@ -888,6 +904,38 @@ function iniciarPollingStatus(paymentId) {
             <a href="index.html" class="btn btn-primary">Voltar para a loja</a>
             <button class="btn btn-secondary" onclick="fecharPixModal()">Fechar agora</button>
           `;
+
+          // 🔹 Dispara evento de conversão Google Ads e GA4
+          try {
+            const valorCompra = amount || totalGeral || 0;
+            const transacaoId = data.id || "";
+
+            // Conversão Google Ads
+            if (typeof gtag === "function") {
+              gtag('event', 'conversion', {
+                'send_to': 'AW-17032173026/jTrvCPHaxL8aEOKrybk_',
+                'value': valorCompra,
+                'currency': 'BRL',
+                'transaction_id': transacaoId
+              });
+
+              // Evento "purchase" para GA4
+              gtag('event', 'purchase', {
+                transaction_id: transacaoId,
+                value: valorCompra,
+                currency: 'BRL',
+                items: (carrinho || []).map(item => ({
+                  item_id: item.id,
+                  item_name: item.nome,
+                  price: item.preco,
+                  quantity: item.quantidade
+                }))
+              });
+            }
+          } catch (e) {
+            console.warn("Falha ao enviar conversão Google Ads/GA4:", e);
+          }
+
 
           // contador regressivo
           let segundosRestantes = 30;
