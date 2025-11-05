@@ -105,55 +105,57 @@ function mostrarProdutos(produtos) {
     const coresDisponiveis = [...new Set((p.variantes || []).map(v => v.cor).filter(Boolean))];
     const tamanhosDisponiveis = [...new Set((p.variantes || []).map(v => v.numero).filter(Boolean))];
 
-    // 🔹 Cores
+    // 🔹 Cores (agora com SELECT)
     if (coresDisponiveis.length) {
       const corContainer = document.createElement("div");
       corContainer.className = "variacao-container";
-      const corLabel = document.createElement("p");
-      corLabel.textContent = "Cores:";
+      const corLabel = document.createElement("label");
+      corLabel.textContent = "Cor:";
+      corLabel.htmlFor = `cor-${p._id}`;
       corContainer.appendChild(corLabel);
 
-      const corBtns = document.createElement("div");
-      corBtns.className = "grupo-variante";
+      const corSelect = document.createElement("select");
+      corSelect.id = `cor-${p._id}`;
+      corSelect.className = "select-variante";
+      corSelect.innerHTML = `<option value="">Selecione</option>`;
       coresDisponiveis.forEach(cor => {
-        const btn = document.createElement("button");
-        btn.textContent = cor;
-        btn.className = "btn-variante-card";
-        btn.addEventListener("click", () => {
-          corSelecionada = cor;
-          // desmarca outros
-          corBtns.querySelectorAll("button").forEach(b => b.classList.remove("ativo"));
-          btn.classList.add("ativo");
-        });
-        corBtns.appendChild(btn);
+        const opt = document.createElement("option");
+        opt.value = cor;
+        opt.textContent = cor;
+        corSelect.appendChild(opt);
       });
-      corContainer.appendChild(corBtns);
+      corSelect.addEventListener("change", () => {
+        corSelecionada = corSelect.value || null;
+      });
+
+      corContainer.appendChild(corSelect);
       variacoesDiv.appendChild(corContainer);
     }
 
-    // 🔹 Tamanhos / Numeração
+    // 🔹 Tamanhos (agora com SELECT)
     if (tamanhosDisponiveis.length) {
       const tamContainer = document.createElement("div");
       tamContainer.className = "variacao-container";
-      const tamLabel = document.createElement("p");
-      tamLabel.textContent = "Tamanhos:";
+      const tamLabel = document.createElement("label");
+      tamLabel.textContent = "Tamanho:";
+      tamLabel.htmlFor = `tam-${p._id}`;
       tamContainer.appendChild(tamLabel);
 
-      const tamBtns = document.createElement("div");
-      tamBtns.className = "grupo-variante";
+      const tamSelect = document.createElement("select");
+      tamSelect.id = `tam-${p._id}`;
+      tamSelect.className = "select-variante";
+      tamSelect.innerHTML = `<option value="">Selecione</option>`;
       tamanhosDisponiveis.forEach(tam => {
-        const btn = document.createElement("button");
-        btn.textContent = tam;
-        btn.className = "btn-variante-card";
-        btn.addEventListener("click", () => {
-          numeroSelecionado = tam;
-          // desmarca outros
-          tamBtns.querySelectorAll("button").forEach(b => b.classList.remove("ativo"));
-          btn.classList.add("ativo");
-        });
-        tamBtns.appendChild(btn);
+        const opt = document.createElement("option");
+        opt.value = tam;
+        opt.textContent = tam;
+        tamSelect.appendChild(opt);
       });
-      tamContainer.appendChild(tamBtns);
+      tamSelect.addEventListener("change", () => {
+        numeroSelecionado = tamSelect.value || null;
+      });
+
+      tamContainer.appendChild(tamSelect);
       variacoesDiv.appendChild(tamContainer);
     }
 
@@ -177,23 +179,20 @@ function mostrarProdutos(produtos) {
     btnCarrinho.className = "btn-adicionar";
 
     btnCarrinho.addEventListener("click", () => {
-      // se houver variações e o usuário não escolheu, avisa
       const temCores = coresDisponiveis.length > 0;
       const temNum = tamanhosDisponiveis.length > 0;
 
       if ((temCores && !corSelecionada) || (temNum && !numeroSelecionado)) {
-        alert("Por favor, selecione a cor e/ou numeração desejada antes de adicionar ao carrinho.");
+        alert("Selecione uma cor e/ou tamanho antes de adicionar ao carrinho.");
         return;
       }
 
-      // monta objeto selecionado
       const selecionado = {
         cor: corSelecionada || null,
         numero: numeroSelecionado || null
       };
 
       adicionarAoCarrinho(p._id, p.nome, Number(p.preco || 0), selecionado);
-      
     });
 
     info.appendChild(btnDetalhes);
@@ -204,6 +203,7 @@ function mostrarProdutos(produtos) {
     lista.appendChild(card);
   });
 }
+
 
 
 

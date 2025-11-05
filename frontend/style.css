@@ -1033,6 +1033,24 @@ body {
   transform: scale(1.05);
 }
 
+.select-variante {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--cor-secundaria);
+  background: #1e1e1e;
+  color: var(--cor-claro);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.select-variante:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 5px var(--cor-destaque);
+}
+
+
 @media (max-width: 600px) {
   .btn-variante-card {
     font-size: 0.8rem;
