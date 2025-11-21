@@ -1170,3 +1170,51 @@ function fecharModalProduto() {
   url.searchParams.delete("produto");
   history.replaceState(null, "", url);
 }
+
+// ====================== Política de Cookies ======================
+document.addEventListener("DOMContentLoaded", () => {
+  const cookieBanner = document.getElementById("cookie-banner");
+  const acceptBtn = document.getElementById("accept-cookies");
+  const rejectBtn = document.getElementById("reject-cookies");
+
+  if (!localStorage.getItem("cookiesChoice")) {
+    cookieBanner.style.display = "block";
+  }
+
+  acceptBtn.addEventListener("click", () => {
+    localStorage.setItem("cookiesChoice", "accepted");
+    cookieBanner.style.display = "none";
+    // Aqui você pode ativar scripts de analytics/ads
+  });
+
+  rejectBtn.addEventListener("click", () => {
+    localStorage.setItem("cookiesChoice", "rejected");
+    cookieBanner.style.display = "none";
+  });
+});
+
+
+// ================= POPUP DE COOKIES ==================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const popup = document.getElementById("cookie-popup");
+  const acceptBtn = document.getElementById("accept-cookies");
+  const declineBtn = document.getElementById("decline-cookies");
+
+  // Mostrar apenas se não tiver escolha salva
+  const decision = localStorage.getItem("cookiesDecision");
+
+  if (!decision) {
+    popup.classList.remove("hidden");
+  }
+
+  acceptBtn.addEventListener("click", () => {
+    localStorage.setItem("cookiesDecision", "accepted");
+    popup.classList.add("hidden");
+  });
+
+  declineBtn.addEventListener("click", () => {
+    localStorage.setItem("cookiesDecision", "declined");
+    popup.classList.add("hidden");
+  });
+});

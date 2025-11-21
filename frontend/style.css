@@ -1057,3 +1057,114 @@ body {
     padding: 5px 10px;
   }
 }
+
+
+/* ===== POPUP DE COOKIES ===== */
+
+.cookie-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.cookie-popup.hidden {
+  display: none;
+}
+
+.cookie-box {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+  animation: fadeIn .3s ease;
+}
+
+.cookie-box h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.cookie-box p {
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 15px;
+}
+
+.cookie-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.btn-accept,
+.btn-decline {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btn-accept {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-decline {
+  background: #e53935;
+  color: white;
+}
+
+.cookie-link {
+  font-size: 14px;
+  text-decoration: underline;
+  color: #555;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+.conteudo-pagina.politica {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  line-height: 1.6;
+}
+
+.conteudo-pagina.politica h1 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.conteudo-pagina.politica h2 {
+  margin-top: 25px;
+  color: #333;
+}
+
+.footer-links {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  
+  text-decoration: none;
+  margin: 0 5px;
+  font-size: 14px;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
